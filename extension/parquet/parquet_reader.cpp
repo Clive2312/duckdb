@@ -991,6 +991,25 @@ bool ParquetReader::ScanInternal(ParquetReaderScanState &state, DataChunk &resul
 		}
 	}
 
+	if(policyChecker){
+		auto _id = reader_data.column_ids;
+		auto col_idx = 0;
+
+		for (col_idx = 0; col_idx < names.size(); col_idx++) {
+			if (names[reader_data.column_ids[col_idx]] == "Region") {
+				break;
+			}
+		}
+
+		if (col_idx != names.size()) {
+			for(auto idx = 0; idx < result.size(); idx++) {
+				if(result.GetValue(col_idx, idx).ToString() != "b") {
+					throw InvalidInputException("The user doesn't have permissions to access the data");
+				}
+			}
+		}
+	}
+
 	state.group_offset += this_output_chunk_rows;
 	return true;
 }

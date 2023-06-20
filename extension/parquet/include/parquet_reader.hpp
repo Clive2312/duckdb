@@ -93,6 +93,7 @@ public:
 	shared_ptr<ParquetFileMetadataCache> metadata;
 	ParquetOptions parquet_options;
 	MultiFileReaderData reader_data;
+	bool policyChecker = true;
 
 public:
 	void InitializeScan(ParquetReaderScanState &state, vector<idx_t> groups_to_read);
