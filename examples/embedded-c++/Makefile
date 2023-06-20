@@ -15,4 +15,8 @@ main:
 	cd build && cmake .. && make
 	build/example
 
-
+example:
+	cd ../..
+	mkdir -p build
+	cd build && cmake .. && make
+	build/example
