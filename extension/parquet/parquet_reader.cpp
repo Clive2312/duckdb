@@ -994,6 +994,27 @@ void ParquetReader::Scan(ParquetReaderScanState &state, DataChunk &result) {
 	}
 }
 
+void GetFilters(vector<unique_ptr<TableFilter>> &filters, vector<string> &filterCols){
+	
+	filters.emplace_back(make_uniq<ConstantFilter>(ExpressionType::COMPARE_EQUAL, Value("c")));
+	filterCols.emplace_back("Region");
+
+	// filters.emplace_back(make_uniq<ConstantFilter>(ExpressionType::COMPARE_EQUAL, Value("a")));
+	// filterCols.emplace_back("Region");
+
+	return;
+}
+
+idx_t ParquetReader::GetColIdx(string colName){
+	auto col_idx = 0;
+	for (col_idx = 0; col_idx < names.size(); col_idx++) {
+		if (names[reader_data.column_ids[col_idx]] == colName) {
+			break;
+		}
+	}
+	return col_idx;
+}
+
 bool ParquetReader::ScanInternal(ParquetReaderScanState &state, DataChunk &result) {
 	if (state.finished) {
 		return false;
