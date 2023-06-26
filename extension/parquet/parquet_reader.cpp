@@ -671,6 +671,50 @@ void FilterIsNotNull(Vector &v, parquet_filter_t &filter_mask, idx_t count) {
 	}
 }
 
+int FilterPolicyIsNull(Vector &v, idx_t count) {
+	if (v.GetVectorType() == VectorType::CONSTANT_VECTOR) {
+		auto &mask = ConstantVector::Validity(v);
+		if (mask.RowIsValid(0)) {
+			return 0;
+		}
+		return 1;
+	}
+	D_ASSERT(v.GetVectorType() == VectorType::FLAT_VECTOR);
+
+	auto &mask = FlatVector::Validity(v);
+	if (mask.AllValid()) {
+		return 0;
+	} else {
+		for (idx_t i = 0; i < count; i++) {
+			if(mask.RowIsValid(i)){
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+int FilterPolicyIsNotNull(Vector &v, idx_t count) {
+	if (v.GetVectorType() == VectorType::CONSTANT_VECTOR) {
+		auto &mask = ConstantVector::Validity(v);
+		if (!mask.RowIsValid(0)) {
+			return 0;
+		}
+		return 1;
+	}
+	D_ASSERT(v.GetVectorType() == VectorType::FLAT_VECTOR);
+
+	auto &mask = FlatVector::Validity(v);
+	if (!mask.AllValid()) {
+		for (idx_t i = 0; i < count; i++) {
+			if(!mask.RowIsValid(i)) {
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
 template <class T, class OP>
 void TemplatedFilterOperation(Vector &v, T constant, parquet_filter_t &filter_mask, idx_t count) {
 	if (v.GetVectorType() == VectorType::CONSTANT_VECTOR) {
@@ -703,8 +747,87 @@ void TemplatedFilterOperation(Vector &v, T constant, parquet_filter_t &filter_ma
 }
 
 template <class T, class OP>
+int TemplatedPolicyFilterOperation(Vector &v, T constant, idx_t count) {
+	if (v.GetVectorType() == VectorType::CONSTANT_VECTOR) {
+		std::cout<<"Constant\n";
+		auto v_ptr = ConstantVector::GetData<T>(v);
+		auto &mask = ConstantVector::Validity(v);
+
+		if (mask.RowIsValid(0)) {
+			if (OP::Operation(v_ptr[0], constant)) {
+				return 0;
+			}
+		}
+		return 1;
+	}
+
+	D_ASSERT(v.GetVectorType() == VectorType::FLAT_VECTOR);
+	auto v_ptr = FlatVector::GetData<T>(v);
+	auto &mask = FlatVector::Validity(v);
+
+	if (!mask.AllValid()) {
+
+		for (idx_t i = 0; i < count; i++) {
+			if (mask.RowIsValid(i) && !OP::Operation(v_ptr[i], constant)) {
+				return 0;
+			}
+		}
+	} else {
+
+		for (idx_t i = 0; i < count; i++) {
+			if(OP::Operation(v_ptr[i], constant)){
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+template <class T, class OP>
 void TemplatedFilterOperation(Vector &v, const Value &constant, parquet_filter_t &filter_mask, idx_t count) {
 	TemplatedFilterOperation<T, OP>(v, constant.template GetValueUnsafe<T>(), filter_mask, count);
+}
+
+template <class T, class OP>
+int TemplatedPolicyFilterOperation(Vector &v, const Value &constant, idx_t count) {
+	return TemplatedPolicyFilterOperation<T, OP>(v, constant.template GetValueUnsafe<T>(), count);
+}
+
+template <class OP>
+static int FilterPolicyOperationSwitch(Vector &v, Value &constant, idx_t count) {
+	if (count == 0) {
+		return 1;
+	}
+	switch (v.GetType().InternalType()) {
+	case PhysicalType::BOOL:
+		return TemplatedPolicyFilterOperation<bool, OP>(v, constant, count);
+	case PhysicalType::UINT8:
+		return TemplatedPolicyFilterOperation<uint8_t, OP>(v, constant, count);
+	case PhysicalType::UINT16:
+		return TemplatedPolicyFilterOperation<uint16_t, OP>(v, constant, count);
+	case PhysicalType::UINT32:
+		return TemplatedPolicyFilterOperation<uint32_t, OP>(v, constant, count);
+	case PhysicalType::UINT64:
+		return TemplatedPolicyFilterOperation<uint64_t, OP>(v, constant, count);
+	case PhysicalType::INT8:
+		return TemplatedPolicyFilterOperation<int8_t, OP>(v, constant, count);
+	case PhysicalType::INT16:
+		return TemplatedPolicyFilterOperation<int16_t, OP>(v, constant, count);
+	case PhysicalType::INT32:
+		return TemplatedPolicyFilterOperation<int32_t, OP>(v, constant, count);
+	case PhysicalType::INT64:
+		return TemplatedPolicyFilterOperation<int64_t, OP>(v, constant, count);
+	case PhysicalType::INT128:
+		return TemplatedPolicyFilterOperation<hugeint_t, OP>(v, constant, count);
+	case PhysicalType::FLOAT:
+		return TemplatedPolicyFilterOperation<float, OP>(v, constant, count);
+	case PhysicalType::DOUBLE:
+		return TemplatedPolicyFilterOperation<double, OP>(v, constant, count);
+	case PhysicalType::VARCHAR:
+		return TemplatedPolicyFilterOperation<string_t, OP>(v, constant, count);
+	default:
+		throw NotImplementedException("Unsupported type for filter %s", v.ToString());
+	}
 }
 
 template <class OP>
@@ -810,6 +933,56 @@ static void ApplyFilter(Vector &v, TableFilter &filter, parquet_filter_t &filter
 		D_ASSERT(0);
 		break;
 	}
+}
+
+static int ApplyPolicyFilter(Vector &v, TableFilter &filter, idx_t count) {
+	switch (filter.filter_type) {
+	case TableFilterType::CONJUNCTION_AND: {
+		auto &conjunction = filter.Cast<ConjunctionAndFilter>();
+		for (auto &child_filter : conjunction.child_filters) {
+			if(!ApplyPolicyFilter(v, *child_filter, count)){
+				return 0;
+			}
+		}
+		return 1;
+	}
+	case TableFilterType::CONJUNCTION_OR: {
+		auto &conjunction = filter.Cast<ConjunctionOrFilter>();
+		parquet_filter_t or_mask;
+		for (auto &child_filter : conjunction.child_filters) {
+			if(ApplyPolicyFilter(v, *child_filter, count)){
+				return 1;
+			}
+		}
+		return 0;
+	}
+	case TableFilterType::CONSTANT_COMPARISON: {
+		auto &constant_filter = filter.Cast<ConstantFilter>();
+		switch (constant_filter.comparison_type) {
+		case ExpressionType::COMPARE_EQUAL:
+			return FilterPolicyOperationSwitch<Equals>(v, constant_filter.constant, count);
+		case ExpressionType::COMPARE_LESSTHAN:
+			return FilterPolicyOperationSwitch<LessThan>(v, constant_filter.constant, count);
+		case ExpressionType::COMPARE_LESSTHANOREQUALTO:
+			return FilterPolicyOperationSwitch<LessThanEquals>(v, constant_filter.constant, count);
+		case ExpressionType::COMPARE_GREATERTHAN:
+			return FilterPolicyOperationSwitch<GreaterThan>(v, constant_filter.constant, count);
+		case ExpressionType::COMPARE_GREATERTHANOREQUALTO:
+			return FilterPolicyOperationSwitch<GreaterThanEquals>(v, constant_filter.constant, count);
+		default:
+			D_ASSERT(0);
+		}
+		break;
+	}
+	case TableFilterType::IS_NOT_NULL:
+		return FilterPolicyIsNotNull(v, count);
+	case TableFilterType::IS_NULL:
+		return FilterPolicyIsNull(v, count);
+	default:
+		D_ASSERT(0);
+		break;
+	}
+	return 1;
 }
 
 void ParquetReader::Scan(ParquetReaderScanState &state, DataChunk &result) {
