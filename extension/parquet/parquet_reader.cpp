@@ -1005,6 +1005,29 @@ void GetFilters(vector<unique_ptr<TableFilter>> &filters, vector<string> &filter
 	return;
 }
 
+void ParquetReader::PolicyViolation(DataChunk &result){
+	vector<unique_ptr<TableFilter>> filters;
+	vector<string> filterCols;
+
+	GetFilters(filters, filterCols);
+
+	if(policyChecker && result.size()){
+		for(auto i = 0; i< filters.size(); i++) {
+			auto &filter = filters[i];
+			auto col_idx = GetColIdx(filterCols[i]);
+			TableFilterSet *policies;
+			auto &result_vector = result.data[reader_data.column_mapping[col_idx]];
+
+			result_vector.Print(result.size());
+			auto no_violation = ApplyPolicyFilter(result_vector, *filter, result.size());
+			if(!no_violation) {
+				throw InvalidInputException("The user doesn't have permissions to access the data");
+			}
+		}
+	}
+	return;
+}
+
 idx_t ParquetReader::GetColIdx(string colName){
 	auto col_idx = 0;
 	for (col_idx = 0; col_idx < names.size(); col_idx++) {
@@ -1185,24 +1208,7 @@ bool ParquetReader::ScanInternal(ParquetReaderScanState &state, DataChunk &resul
 		}
 	}
 
-	if(policyChecker){
-		auto _id = reader_data.column_ids;
-		auto col_idx = 0;
-
-		for (col_idx = 0; col_idx < names.size(); col_idx++) {
-			if (names[reader_data.column_ids[col_idx]] == "Region") {
-				break;
-			}
-		}
-
-		if (col_idx != names.size()) {
-			for(auto idx = 0; idx < result.size(); idx++) {
-				if(result.GetValue(col_idx, idx).ToString() != "b") {
-					throw InvalidInputException("The user doesn't have permissions to access the data");
-				}
-			}
-		}
-	}
+	PolicyViolation(result);
 
 	state.group_offset += this_output_chunk_rows;
 	return true;
