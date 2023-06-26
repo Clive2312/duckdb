@@ -93,6 +93,7 @@ public:
 	shared_ptr<ParquetFileMetadataCache> metadata;
 	ParquetOptions parquet_options;
 	MultiFileReaderData reader_data;
+	MultiFileReaderData policy_data;
 	bool policyChecker = true;
 
 public:
@@ -123,6 +124,8 @@ public:
 
 private:
 	void InitializeSchema();
+	void PolicyViolation(DataChunk &output);
+	idx_t GetColIdx(string colName);
 	bool ScanInternal(ParquetReaderScanState &state, DataChunk &output);
 	unique_ptr<ColumnReader> CreateReader();
 
