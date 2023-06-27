@@ -1017,8 +1017,6 @@ void ParquetReader::PolicyViolation(DataChunk &result){
 			auto col_idx = GetColIdx(filterCols[i]);
 			TableFilterSet *policies;
 			auto &result_vector = result.data[reader_data.column_mapping[col_idx]];
-
-			result_vector.Print(result.size());
 			auto no_violation = ApplyPolicyFilter(result_vector, *filter, result.size());
 			if(!no_violation) {
 				throw InvalidInputException("The user doesn't have permissions to access the data");
@@ -1034,6 +1032,9 @@ idx_t ParquetReader::GetColIdx(string colName){
 		if (names[reader_data.column_ids[col_idx]] == colName) {
 			break;
 		}
+	}
+	if(col_idx >= names.size()) {
+		throw InvalidInputException("Invalid Filter");
 	}
 	return col_idx;
 }
