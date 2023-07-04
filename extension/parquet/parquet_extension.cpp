@@ -132,12 +132,14 @@ struct ParquetWriteLocalState : public LocalFunctionData {
 void ParquetOptions::Serialize(FieldWriter &writer) const {
 	writer.WriteField<bool>(binary_as_string);
 	writer.WriteField<bool>(file_row_number);
+	writer.WriteString(policy_file);
 	writer.WriteSerializable(file_options);
 }
 
 void ParquetOptions::Deserialize(FieldReader &reader) {
 	binary_as_string = reader.ReadRequired<bool>();
 	file_row_number = reader.ReadRequired<bool>();
+	policy_file = reader.ReadRequired<string>();
 	file_options = reader.ReadRequiredSerializable<MultiFileReaderOptions, MultiFileReaderOptions>();
 }
 
@@ -151,6 +153,7 @@ BindInfo ParquetGetBatchInfo(const FunctionData *bind_data) {
 	bind_info.InsertOption("file_path", Value::LIST(LogicalType::VARCHAR, file_path));
 	bind_info.InsertOption("binary_as_string", Value::BOOLEAN(parquet_bind.parquet_options.binary_as_string));
 	bind_info.InsertOption("file_row_number", Value::BOOLEAN(parquet_bind.parquet_options.file_row_number));
+	bind_info.InsertOption("policy_file", parquet_bind.parquet_options.policy_file);
 	parquet_bind.parquet_options.file_options.AddBatchInfo(bind_info);
 	return bind_info;
 }
@@ -165,6 +168,7 @@ public:
 		table_function.table_scan_progress = ParquetProgress;
 		table_function.named_parameters["binary_as_string"] = LogicalType::BOOLEAN;
 		table_function.named_parameters["file_row_number"] = LogicalType::BOOLEAN;
+		table_function.named_parameters["policy_file"] = LogicalType::VARCHAR;
 		table_function.named_parameters["compression"] = LogicalType::VARCHAR;
 		MultiFileReader::AddParameters(table_function);
 		table_function.get_batch_index = ParquetScanGetBatchIndex;
@@ -300,6 +304,9 @@ public:
 				parquet_options.binary_as_string = BooleanValue::Get(kv.second);
 			} else if (loption == "file_row_number") {
 				parquet_options.file_row_number = BooleanValue::Get(kv.second);
+			} else if(loption == "policy_file") {
+				parquet_options.policy_file = StringValue::Get(kv.second);
+				std::cout<<"Policy file: "<<parquet_options.policy_file<<"\n";
 			}
 		}
 		if (parquet_options.file_options.auto_detect_hive_partitioning) {
