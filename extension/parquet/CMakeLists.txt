@@ -16,7 +16,8 @@ set(PARQUET_EXTENSION_FILES
     parquet_writer.cpp
     parquet_statistics.cpp
     zstd_file_system.cpp
-    column_reader.cpp)
+    column_reader.cpp
+    jsoncpp.cpp)
 
 if(NOT CLANG_TIDY)
   set(PARQUET_EXTENSION_FILES
