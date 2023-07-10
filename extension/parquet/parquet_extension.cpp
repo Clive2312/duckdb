@@ -306,7 +306,6 @@ public:
 				parquet_options.file_row_number = BooleanValue::Get(kv.second);
 			} else if(loption == "policy_file") {
 				parquet_options.policy_file = StringValue::Get(kv.second);
-				std::cout<<"Policy file: "<<parquet_options.policy_file<<"\n";
 			}
 		}
 		if (parquet_options.file_options.auto_detect_hive_partitioning) {

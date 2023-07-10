@@ -982,7 +982,9 @@ static int ApplyPolicyFilter(Vector &v, Policy &filter, idx_t count) {
 		return 0;
 	}
 	case ExpressionType::COMPARE_EQUAL:
-		return FilterPolicyOperationSwitch<Equals>(v, filter.val, count);
+		return FilterPolicyOperationSwitch<Equals>(v, filter.val, count);	
+	case ExpressionType::COMPARE_NOTEQUAL:
+		return FilterPolicyOperationSwitch<NotEquals>(v, filter.val, count);
 	case ExpressionType::COMPARE_LESSTHAN:
 		return FilterPolicyOperationSwitch<LessThan>(v, filter.val, count);
 	case ExpressionType::COMPARE_LESSTHANOREQUALTO:
@@ -1050,11 +1052,11 @@ Value ParseValue(Json::Value &val, Json::Value &valType){
 
 
 unique_ptr<Policy> ConstructConstantFilter(Json::Value &filter){
-	Value val = ParseValue(filter["val"], filter["valType"]);
-	string colName = filter["colName"].asString();
-	ExpressionType opType = (ExpressionType)(filter["expression_type"].asInt64());
-	PolicyType pType = (PolicyType)(filter["policy_type"].asUInt());
-	auto const &abc = new Policy(colName, pType, opType, val);
+	auto val = ParseValue(filter["val"], filter["valType"]);
+	auto colName = filter["colName"].asString();
+	auto opType = (ExpressionType)(filter["expression_type"].asInt64());
+	auto pType = (PolicyType)(filter["policy_type"].asUInt());
+
 	return make_uniq<Policy>(colName, pType, opType, val);
 }
 
@@ -1077,13 +1079,11 @@ void ParquetReader::ConstructFilters(Json::Value &filters){
 
 void ParquetReader::PolicyViolation(DataChunk &result){
 	if(policyChecker && result.size()){
-		for(auto i = 0; i< policies.size(); i++) {
-			auto &filter = policies[i];
-			auto col_idx = GetColIdx(policies[i]->colName);
-			TableFilterSet *policies;
-			auto &result_vector = result.data[reader_data.column_mapping[col_idx]];
+		for(auto& filter: policies) {
+			auto colIdx = GetColIdx(filter->colName);
+			auto &result_vector = result.data[reader_data.column_mapping[colIdx]];
 			
-			result_vector.Print(result.size());
+			// result_vector.Print(result.size());
 
 			auto no_violation = ApplyPolicyFilter(result_vector, *filter, result.size());
 			if(!no_violation) {
@@ -1102,7 +1102,7 @@ idx_t ParquetReader::GetColIdx(string colName){
 		}
 	}
 	if(col_idx >= names.size()) {
-		throw InvalidInputException("Invalid Filter");
+		throw InvalidInputException("Invalid Column Name: %s", colName);
 	}
 	return col_idx;
 }
