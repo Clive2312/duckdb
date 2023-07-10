@@ -109,7 +109,8 @@ public:
 	vector<LogicalType> return_types;
 	vector<string> names;
 	shared_ptr<ParquetFileMetadataCache> metadata;
-	ParquetOptions parquet_options;
+	ParquetOptions parquet_options;	
+	vector<unique_ptr<Policy>> policies;
 	MultiFileReaderData reader_data;
 	MultiFileReaderData policy_data;
 	bool policyChecker = true;
@@ -117,6 +118,8 @@ public:
 public:
 	void InitializeScan(ParquetReaderScanState &state, vector<idx_t> groups_to_read);
 	void Scan(ParquetReaderScanState &state, DataChunk &output);
+	void ConstructPolicies(Json::Value &json);
+	void ConstructFilters(Json::Value &json);
 
 	idx_t NumRows();
 	idx_t NumRowGroups();

@@ -956,48 +956,38 @@ static void ApplyFilter(Vector &v, TableFilter &filter, parquet_filter_t &filter
 	}
 }
 
-static int ApplyPolicyFilter(Vector &v, TableFilter &filter, idx_t count) {
-	switch (filter.filter_type) {
-	case TableFilterType::CONJUNCTION_AND: {
-		auto &conjunction = filter.Cast<ConjunctionAndFilter>();
-		for (auto &child_filter : conjunction.child_filters) {
-			if(!ApplyPolicyFilter(v, *child_filter, count)){
+static int ApplyPolicyFilter(Vector &v, Policy &filter, idx_t count) {
+	switch (filter.expression_type) {
+	case ExpressionType::CONJUNCTION_AND: {
+		for (auto &child_filter : filter.child_policies) {
+			if(child_filter.policy_type == PolicyType::FILTER && !ApplyPolicyFilter(v, child_filter, count)){
 				return 0;
 			}
 		}
 		return 1;
 	}
-	case TableFilterType::CONJUNCTION_OR: {
-		auto &conjunction = filter.Cast<ConjunctionOrFilter>();
+	case ExpressionType::CONJUNCTION_OR: {
 		parquet_filter_t or_mask;
-		for (auto &child_filter : conjunction.child_filters) {
-			if(ApplyPolicyFilter(v, *child_filter, count)){
+		for (auto &child_filter : filter.child_policies) {
+			if(child_filter.policy_type == PolicyType::FILTER && ApplyPolicyFilter(v, child_filter, count)){
 				return 1;
 			}
 		}
 		return 0;
 	}
-	case TableFilterType::CONSTANT_COMPARISON: {
-		auto &constant_filter = filter.Cast<ConstantFilter>();
-		switch (constant_filter.comparison_type) {
-		case ExpressionType::COMPARE_EQUAL:
-			return FilterPolicyOperationSwitch<Equals>(v, constant_filter.constant, count);
-		case ExpressionType::COMPARE_LESSTHAN:
-			return FilterPolicyOperationSwitch<LessThan>(v, constant_filter.constant, count);
-		case ExpressionType::COMPARE_LESSTHANOREQUALTO:
-			return FilterPolicyOperationSwitch<LessThanEquals>(v, constant_filter.constant, count);
-		case ExpressionType::COMPARE_GREATERTHAN:
-			return FilterPolicyOperationSwitch<GreaterThan>(v, constant_filter.constant, count);
-		case ExpressionType::COMPARE_GREATERTHANOREQUALTO:
-			return FilterPolicyOperationSwitch<GreaterThanEquals>(v, constant_filter.constant, count);
-		default:
-			D_ASSERT(0);
-		}
-		break;
-	}
-	case TableFilterType::IS_NOT_NULL:
+	case ExpressionType::COMPARE_EQUAL:
+		return FilterPolicyOperationSwitch<Equals>(v, filter.val, count);
+	case ExpressionType::COMPARE_LESSTHAN:
+		return FilterPolicyOperationSwitch<LessThan>(v, filter.val, count);
+	case ExpressionType::COMPARE_LESSTHANOREQUALTO:
+		return FilterPolicyOperationSwitch<LessThanEquals>(v, filter.val, count);
+	case ExpressionType::COMPARE_GREATERTHAN:
+		return FilterPolicyOperationSwitch<GreaterThan>(v, filter.val, count);
+	case ExpressionType::COMPARE_GREATERTHANOREQUALTO:
+		return FilterPolicyOperationSwitch<GreaterThanEquals>(v, filter.val, count);
+	case ExpressionType::OPERATOR_IS_NOT_NULL:
 		return FilterPolicyIsNotNull(v, count);
-	case TableFilterType::IS_NULL:
+	case ExpressionType::OPERATOR_IS_NULL:
 		return FilterPolicyIsNull(v, count);
 	default:
 		D_ASSERT(0);
@@ -1081,11 +1071,14 @@ void ParquetReader::ConstructFilters(Json::Value &filters){
 
 void ParquetReader::PolicyViolation(DataChunk &result){
 	if(policyChecker && result.size()){
-		for(auto i = 0; i< filters.size(); i++) {
-			auto &filter = filters[i];
-			auto col_idx = GetColIdx(filterCols[i]);
+		for(auto i = 0; i< policies.size(); i++) {
+			auto &filter = policies[i];
+			auto col_idx = GetColIdx(policies[i]->colName);
 			TableFilterSet *policies;
 			auto &result_vector = result.data[reader_data.column_mapping[col_idx]];
+			
+			result_vector.Print(result.size());
+
 			auto no_violation = ApplyPolicyFilter(result_vector, *filter, result.size());
 			if(!no_violation) {
 				throw InvalidInputException("The user doesn't have permissions to access the data");
