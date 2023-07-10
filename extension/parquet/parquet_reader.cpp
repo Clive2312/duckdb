@@ -465,6 +465,14 @@ ParquetReader::ParquetReader(ClientContext &context_p, string file_name_p, Parqu
 		}
 	}
 
+	if (parquet_options.policy_file != "") {
+		std::ifstream handle(parquet_options.policy_file);
+		Json::Reader reader;
+		Json::Value completeJson;
+		reader.parse(handle, completeJson);
+		ConstructPolicies(completeJson);
+	}
+
 	InitializeSchema();
 }
 
@@ -763,7 +771,6 @@ void TemplatedFilterOperation(Vector &v, T constant, parquet_filter_t &filter_ma
 template <class T, class OP>
 int TemplatedPolicyFilterOperation(Vector &v, T constant, idx_t count) {
 	if (v.GetVectorType() == VectorType::CONSTANT_VECTOR) {
-		std::cout<<"Constant\n";
 		auto v_ptr = ConstantVector::GetData<T>(v);
 		auto &mask = ConstantVector::Validity(v);
 
@@ -1008,23 +1015,71 @@ void ParquetReader::Scan(ParquetReaderScanState &state, DataChunk &result) {
 	}
 }
 
-void GetFilters(vector<unique_ptr<TableFilter>> &filters, vector<string> &filterCols){
-	
-	filters.emplace_back(make_uniq<ConstantFilter>(ExpressionType::COMPARE_EQUAL, Value("c")));
-	filterCols.emplace_back("Region");
+void ParquetReader::ConstructPolicies(Json::Value &json){
+	ConstructFilters(json["filters"]);
+}
 
-	// filters.emplace_back(make_uniq<ConstantFilter>(ExpressionType::COMPARE_EQUAL, Value("a")));
-	// filterCols.emplace_back("Region");
+Value ParseValue(Json::Value &val, Json::Value &valType){
+	switch((PhysicalType)(valType.asUInt())) {
+		case PhysicalType::BOOL:
+			return Value(val.asBool());
+		case PhysicalType::UINT8:
+			return Value(val.asInt64());
+		case PhysicalType::UINT16:
+			return Value(val.asInt64());
+		case PhysicalType::UINT32:
+			return Value(val.asInt64());
+		case PhysicalType::UINT64:
+			return Value(val.asInt64());
+		case PhysicalType::INT8:
+			return Value(val.asInt64());
+		case PhysicalType::INT16:
+			return Value(val.asInt64());
+		case PhysicalType::INT32:
+			return Value(val.asInt64());
+		case PhysicalType::INT64:
+			return Value(val.asInt64());
+		case PhysicalType::INT128:
+			return Value(val.asInt64());
+		case PhysicalType::FLOAT:
+			return Value(val.asFloat());
+		case PhysicalType::DOUBLE:
+			return Value(val.asDouble());
+		case PhysicalType::VARCHAR:
+			return Value(val.asString());
+		default:
+			throw NotImplementedException("Unsupported type for filter %s", val.asString());
+	}
+}
 
-	return;
+
+unique_ptr<Policy> ConstructConstantFilter(Json::Value &filter){
+	Value val = ParseValue(filter["val"], filter["valType"]);
+	string colName = filter["colName"].asString();
+	ExpressionType opType = (ExpressionType)(filter["expression_type"].asInt64());
+	PolicyType pType = (PolicyType)(filter["policy_type"].asUInt());
+	auto const &abc = new Policy(colName, pType, opType, val);
+	return make_uniq<Policy>(colName, pType, opType, val);
+}
+
+// unique_ptr<Policy> ConstructConjFilter(Json::Value &filter){
+// }
+
+void ParquetReader::ConstructFilters(Json::Value &filters){
+	for(auto &filter: filters) {
+		switch(filter["policy_type"].asUInt()){
+			case 0: 
+				policies.emplace_back(ConstructConstantFilter(filter));
+				break;
+			case 4: 
+				// policies.emplace_back(ConstructConjFilter(filter));
+				break;
+			default: break;
+		}
+	}
 }
 
 void ParquetReader::PolicyViolation(DataChunk &result){
-	vector<unique_ptr<TableFilter>> filters;
-	vector<string> filterCols;
-
-	GetFilters(filters, filterCols);
-
 	if(policyChecker && result.size()){
 		for(auto i = 0; i< filters.size(); i++) {
 			auto &filter = filters[i];
