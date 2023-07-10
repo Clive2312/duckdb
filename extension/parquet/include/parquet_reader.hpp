@@ -26,7 +26,7 @@
 #include "parquet_rle_bp_decoder.hpp"
 #include "parquet_types.h"
 #include "resizable_buffer.hpp"
-
+#include "../json/json.h"
 #include <exception>
 
 namespace duckdb_parquet {
@@ -62,6 +62,23 @@ struct ParquetReaderScanState {
 
 	bool prefetch_mode = false;
 	bool current_group_prefetched = false;
+};
+
+enum class PolicyType : uint8_t {
+	INVALID = 0,
+	FILTER = 1,
+	OTHER = 2
+};
+
+struct Policy {
+	string colName;
+	PolicyType policy_type;
+	ExpressionType expression_type;
+	vector<Policy> child_policies;
+	Value val;
+	Policy(string colName, PolicyType policy_type, ExpressionType operator_type, Value &val);
+	Policy(PolicyType policy_type, ExpressionType operator_type, vector<Policy> &child_policies);
+	~Policy();
 };
 
 struct ParquetOptions {
