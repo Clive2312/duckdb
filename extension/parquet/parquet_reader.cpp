@@ -36,6 +36,8 @@
 #include <cassert>
 #include <chrono>
 #include <cstring>
+#include <fstream>
+#include "json/json.h"
 
 namespace duckdb {
 
@@ -425,6 +427,18 @@ ParquetOptions::ParquetOptions(ClientContext &context) {
 	if (context.TryGetCurrentSetting("binary_as_string", binary_as_string_val)) {
 		binary_as_string = binary_as_string_val.GetValue<bool>();
 	}
+}
+
+
+Policy::Policy(string colName_p, PolicyType policy_type_p, ExpressionType expression_type_p, Value &val_p) 
+	: colName(colName_p), policy_type(policy_type_p), expression_type(expression_type_p), val(val_p) {
+}
+
+Policy::Policy(PolicyType policy_type_p, ExpressionType expression_type_p, vector<Policy> &child_policies_p) 
+	: policy_type(policy_type_p), expression_type(expression_type_p), child_policies(child_policies_p) {
+}
+
+Policy::~Policy(){
 }
 
 ParquetReader::ParquetReader(ClientContext &context_p, string file_name_p, ParquetOptions parquet_options_p)
