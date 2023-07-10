@@ -787,17 +787,22 @@ int TemplatedPolicyFilterOperation(Vector &v, T constant, idx_t count) {
 	auto v_ptr = FlatVector::GetData<T>(v);
 	auto &mask = FlatVector::Validity(v);
 
-	if (!mask.AllValid()) {
+	auto &sel_vector = DictionaryVector::SelVector(v);
 
+	if (!mask.AllValid()) {
 		for (idx_t i = 0; i < count; i++) {
-			if (mask.RowIsValid(i) && !OP::Operation(v_ptr[i], constant)) {
+
+			idx_t idx = sel_vector.get_index(i);
+
+			if (mask.RowIsValid(idx) && OP::Operation(v_ptr[idx], constant)) {
 				return 0;
 			}
 		}
 	} else {
-
 		for (idx_t i = 0; i < count; i++) {
-			if(OP::Operation(v_ptr[i], constant)){
+			idx_t idx = sel_vector.get_index(i);
+
+			if(OP::Operation(v_ptr[idx], constant)){
 				return 0;
 			}
 		}
