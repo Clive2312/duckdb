@@ -420,6 +420,15 @@ void ParquetReader::InitializeSchema() {
 		return_types.emplace_back(LogicalType::BIGINT);
 		names.emplace_back("file_row_number");
 	}
+
+	// Constructing Policies
+	if (parquet_options.policy_file != "") {
+		std::ifstream handle(parquet_options.policy_file);
+		Json::Reader reader;
+		Json::Value completeJson;
+		reader.parse(handle, completeJson);
+		ConstructPolicies(completeJson);
+	}
 }
 
 ParquetOptions::ParquetOptions(ClientContext &context) {
@@ -463,14 +472,6 @@ ParquetReader::ParquetReader(ClientContext &context_p, string file_name_p, Parqu
 			metadata = LoadMetadata(allocator, *file_handle);
 			ObjectCache::GetObjectCache(context_p).Put(file_name, metadata);
 		}
-	}
-
-	if (parquet_options.policy_file != "") {
-		std::ifstream handle(parquet_options.policy_file);
-		Json::Reader reader;
-		Json::Value completeJson;
-		reader.parse(handle, completeJson);
-		ConstructPolicies(completeJson);
 	}
 
 	InitializeSchema();
