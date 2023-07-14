@@ -440,11 +440,11 @@ ParquetOptions::ParquetOptions(ClientContext &context) {
 
 
 Policy::Policy(string colName_p, PolicyType policy_type_p, ExpressionType expression_type_p, Value &val_p) 
-	: colName(colName_p), policy_type(policy_type_p), expression_type(expression_type_p), val(val_p) {
+	: colName(colName_p), policy_type(policy_type_p), expression_type(expression_type_p), val(std::move(val_p)) {
 }
 
-Policy::Policy(PolicyType policy_type_p, ExpressionType expression_type_p, vector<Policy> &child_policies_p) 
-	: policy_type(policy_type_p), expression_type(expression_type_p), child_policies(child_policies_p) {
+Policy::Policy(PolicyType policy_type_p, ExpressionType expression_type_p, vector<unique_ptr<Policy>> &child_policies_p) 
+	: policy_type(policy_type_p), expression_type(expression_type_p), child_policies(std::move(child_policies_p)) {
 }
 
 Policy::~Policy(){
@@ -962,11 +962,13 @@ static void ApplyFilter(Vector &v, TableFilter &filter, parquet_filter_t &filter
 	}
 }
 
-static int ApplyPolicyFilter(Vector &v, Policy &filter, idx_t count) {
+int ParquetReader::ApplyPolicyFilter(vector<Vector> &v, Policy &filter, idx_t count) {
+	auto colIdx = GetColIdx(filter.colName);
+	auto &result_vector = v[reader_data.column_mapping[colIdx]];
 	switch (filter.expression_type) {
 	case ExpressionType::CONJUNCTION_AND: {
 		for (auto &child_filter : filter.child_policies) {
-			if(child_filter.policy_type == PolicyType::FILTER && !ApplyPolicyFilter(v, child_filter, count)){
+			if(child_filter->policy_type == PolicyType::FILTER && !ApplyPolicyFilter(v, *child_filter, count)){
 				return 0;
 			}
 		}
@@ -975,28 +977,28 @@ static int ApplyPolicyFilter(Vector &v, Policy &filter, idx_t count) {
 	case ExpressionType::CONJUNCTION_OR: {
 		parquet_filter_t or_mask;
 		for (auto &child_filter : filter.child_policies) {
-			if(child_filter.policy_type == PolicyType::FILTER && ApplyPolicyFilter(v, child_filter, count)){
+			if(child_filter->policy_type == PolicyType::FILTER && ApplyPolicyFilter(v, *child_filter, count)){
 				return 1;
 			}
 		}
 		return 0;
 	}
 	case ExpressionType::COMPARE_EQUAL:
-		return FilterPolicyOperationSwitch<Equals>(v, filter.val, count);	
+		return FilterPolicyOperationSwitch<Equals>(result_vector, filter.val, count);	
 	case ExpressionType::COMPARE_NOTEQUAL:
-		return FilterPolicyOperationSwitch<NotEquals>(v, filter.val, count);
+		return FilterPolicyOperationSwitch<NotEquals>(result_vector, filter.val, count);
 	case ExpressionType::COMPARE_LESSTHAN:
-		return FilterPolicyOperationSwitch<LessThan>(v, filter.val, count);
+		return FilterPolicyOperationSwitch<LessThan>(result_vector, filter.val, count);
 	case ExpressionType::COMPARE_LESSTHANOREQUALTO:
-		return FilterPolicyOperationSwitch<LessThanEquals>(v, filter.val, count);
+		return FilterPolicyOperationSwitch<LessThanEquals>(result_vector, filter.val, count);
 	case ExpressionType::COMPARE_GREATERTHAN:
-		return FilterPolicyOperationSwitch<GreaterThan>(v, filter.val, count);
+		return FilterPolicyOperationSwitch<GreaterThan>(result_vector, filter.val, count);
 	case ExpressionType::COMPARE_GREATERTHANOREQUALTO:
-		return FilterPolicyOperationSwitch<GreaterThanEquals>(v, filter.val, count);
+		return FilterPolicyOperationSwitch<GreaterThanEquals>(result_vector, filter.val, count);
 	case ExpressionType::OPERATOR_IS_NOT_NULL:
-		return FilterPolicyIsNotNull(v, count);
+		return FilterPolicyIsNotNull(result_vector, count);
 	case ExpressionType::OPERATOR_IS_NULL:
-		return FilterPolicyIsNull(v, count);
+		return FilterPolicyIsNull(result_vector, count);
 	default:
 		D_ASSERT(0);
 		break;
@@ -1084,14 +1086,11 @@ unique_ptr<Policy> ParquetReader::ConstructFilter(Json::Value &filter){
 void ParquetReader::PolicyViolation(DataChunk &result){
 	if(policyChecker && result.size()){
 		for(auto& filter: policies) {
-			auto colIdx = GetColIdx(filter->colName);
-			auto &result_vector = result.data[reader_data.column_mapping[colIdx]];
-			
-			// result_vector.Print(result.size());
-
-			auto no_violation = ApplyPolicyFilter(result_vector, *filter, result.size());
-			if(!no_violation) {
-				throw InvalidInputException("The user doesn't have permissions to access the data");
+			if(filter->policy_type == PolicyType::FILTER) {
+				auto no_violation = ApplyPolicyFilter(result.data, *filter, result.size());
+				if(!no_violation) {
+					throw InvalidInputException("The user doesn't have permissions to access the data");
+				}
 			}
 		}
 	}
@@ -1106,7 +1105,7 @@ idx_t ParquetReader::GetColIdx(string colName){
 		}
 	}
 	if(col_idx >= names.size()) {
-		throw InvalidInputException("Invalid Column Name: %s", colName);
+		return 0;
 	}
 	return col_idx;
 }
