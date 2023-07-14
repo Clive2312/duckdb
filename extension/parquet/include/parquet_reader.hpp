@@ -74,10 +74,10 @@ struct Policy {
 	string colName;
 	PolicyType policy_type;
 	ExpressionType expression_type;
-	vector<Policy> child_policies;
+	vector<unique_ptr<Policy>> child_policies;
 	Value val;
 	Policy(string colName, PolicyType policy_type, ExpressionType operator_type, Value &val);
-	Policy(PolicyType policy_type, ExpressionType operator_type, vector<Policy> &child_policies);
+	Policy(PolicyType policy_type, ExpressionType operator_type, vector<unique_ptr<Policy>> &child_policies);
 	~Policy();
 };
 
@@ -118,8 +118,6 @@ public:
 public:
 	void InitializeScan(ParquetReaderScanState &state, vector<idx_t> groups_to_read);
 	void Scan(ParquetReaderScanState &state, DataChunk &output);
-	void ConstructPolicies(Json::Value &json);
-	void ConstructFilters(Json::Value &json);
 
 	idx_t NumRows();
 	idx_t NumRowGroups();
@@ -145,7 +143,11 @@ public:
 
 private:
 	void InitializeSchema();
+	void ConstructPolicies(Json::Value &json);
+	unique_ptr<Policy> ConstructConjFilter(Json::Value &filter);
+	unique_ptr<Policy> ConstructFilter(Json::Value &filter);
 	void PolicyViolation(DataChunk &output);
+	int ApplyPolicyFilter(vector<Vector> &v, Policy &filter, idx_t count);
 	idx_t GetColIdx(string colName);
 	bool ScanInternal(ParquetReaderScanState &state, DataChunk &output);
 	unique_ptr<ColumnReader> CreateReader();
