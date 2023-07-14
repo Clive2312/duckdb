@@ -1014,7 +1014,9 @@ void ParquetReader::Scan(ParquetReaderScanState &state, DataChunk &result) {
 }
 
 void ParquetReader::ConstructPolicies(Json::Value &json){
-	ConstructFilters(json["filters"]);
+	for(auto &filter: json["filters"]){
+		policies.emplace_back(std::move(ConstructFilter(filter)));
+	}
 }
 
 Value ParseValue(Json::Value &val, Json::Value &valType){
@@ -1055,25 +1057,27 @@ unique_ptr<Policy> ConstructConstantFilter(Json::Value &filter){
 	auto val = ParseValue(filter["val"], filter["valType"]);
 	auto colName = filter["colName"].asString();
 	auto opType = (ExpressionType)(filter["expression_type"].asInt64());
-	auto pType = (PolicyType)(filter["policy_type"].asUInt());
 
-	return make_uniq<Policy>(colName, pType, opType, val);
+	return make_uniq<Policy>(colName, PolicyType::FILTER, opType, val);
 }
 
-// unique_ptr<Policy> ConstructConjFilter(Json::Value &filter){
-// }
+unique_ptr<Policy> ParquetReader::ConstructConjFilter(Json::Value &filter){
+	auto opType = (ExpressionType)filter["expression_type"].asInt64();
+	vector<unique_ptr<Policy>> child_vector;
 
-void ParquetReader::ConstructFilters(Json::Value &filters){
-	for(auto &filter: filters) {
-		switch(filter["policy_type"].asUInt()){
-			case 0: 
-				policies.emplace_back(ConstructConstantFilter(filter));
-				break;
-			case 4: 
-				// policies.emplace_back(ConstructConjFilter(filter));
-				break;
-			default: break;
-		}
+	for(auto& child_filter: filter["child_filters"]){
+		child_vector.emplace_back(std::move(ConstructFilter(child_filter)));
+	}
+
+	return make_uniq<Policy>(PolicyType::FILTER, opType, child_vector);
+}
+
+unique_ptr<Policy> ParquetReader::ConstructFilter(Json::Value &filter){
+	auto type = (ExpressionType)filter["expression_type"].asInt64();
+	if(type == ExpressionType::CONJUNCTION_AND || type == ExpressionType::CONJUNCTION_OR) {
+		return ConstructConjFilter(filter);
+	} else {
+		return ConstructConstantFilter(filter);
 	}
 }
 
