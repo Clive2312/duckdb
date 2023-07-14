@@ -1,15 +1,15 @@
 {
     "filters": [{
         "colName": "Region",
-        "val": "c",
+        "val": "a", 
         "valType": 200,
         "policy_type": 0,
-        "expression_type": 25 
+        "expression_type": 26 
     },
     {
-        "policy_type": 4,
+        "policy_type": 0,
         "expression_type": 50,
-        "childFilters": [
+        "child_filters": [
             {
                 "colName":"Account",
                 "val": 400,
