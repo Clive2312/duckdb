@@ -473,7 +473,6 @@ ParquetReader::ParquetReader(ClientContext &context_p, string file_name_p, Parqu
 			ObjectCache::GetObjectCache(context_p).Put(file_name, metadata);
 		}
 	}
-
 	InitializeSchema();
 }
 
@@ -791,7 +790,6 @@ int TemplatedPolicyFilterOperation(Vector &v, T constant, idx_t count) {
 
 	if (!mask.AllValid()) {
 		for (idx_t i = 0; i < count; i++) {
-
 			idx_t idx = sel_vector.get_index(i);
 
 			if (mask.RowIsValid(idx) && OP::Operation(v_ptr[idx], constant)) {
@@ -965,6 +963,7 @@ static void ApplyFilter(Vector &v, TableFilter &filter, parquet_filter_t &filter
 int ParquetReader::ApplyPolicyFilter(vector<Vector> &v, Policy &filter, idx_t count) {
 	auto colIdx = GetColIdx(filter.colName);
 	auto &result_vector = v[reader_data.column_mapping[colIdx]];
+
 	switch (filter.expression_type) {
 	case ExpressionType::CONJUNCTION_AND: {
 		for (auto &child_filter : filter.child_policies) {
@@ -1059,7 +1058,6 @@ unique_ptr<Policy> ConstructConstantFilter(Json::Value &filter){
 	auto val = ParseValue(filter["val"], filter["valType"]);
 	auto colName = filter["colName"].asString();
 	auto opType = (ExpressionType)(filter["expression_type"].asInt64());
-
 	return make_uniq<Policy>(colName, PolicyType::FILTER, opType, val);
 }
 
@@ -1278,6 +1276,7 @@ bool ParquetReader::ScanInternal(ParquetReaderScanState &state, DataChunk &resul
 				                            file_col_idx, result.size(), rows_read);
 			}
 		}
+		result.Slice(SelectionVector(), this_output_chunk_rows);
 	}
 
 	PolicyViolation(result);
