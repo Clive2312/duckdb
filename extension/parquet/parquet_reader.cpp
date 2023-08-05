@@ -1015,47 +1015,59 @@ void ParquetReader::Scan(ParquetReaderScanState &state, DataChunk &result) {
 }
 
 void ParquetReader::ConstructPolicies(Json::Value &json){
+	user_data = json["userData"];
 	for(auto &filter: json["filters"]){
 		policies.emplace_back(std::move(ConstructFilter(filter)));
 	}
 }
 
-Value ParseValue(Json::Value &val, Json::Value &valType){
+Value ParseValue(Json::Value &val, Json::Value &valType, Json::Value &user_data){
+
+	auto &data = val;
+	auto val_str = val.asString();
+	if(val_str.size() > 0 && val_str[0] == '@'){
+		string colName = "";
+		for(int i = 1; i< val_str.size(); i++){
+			colName += val_str[i];
+		}
+		data = user_data[colName];
+	}
+
 	switch((PhysicalType)(valType.asUInt())) {
 		case PhysicalType::BOOL:
-			return Value(val.asBool());
+			return Value(data.asBool());
 		case PhysicalType::UINT8:
-			return Value(val.asInt64());
+			return Value(data.asInt64());
 		case PhysicalType::UINT16:
-			return Value(val.asInt64());
+			return Value(data.asInt64());
 		case PhysicalType::UINT32:
-			return Value(val.asInt64());
+			return Value(data.asInt64());
 		case PhysicalType::UINT64:
-			return Value(val.asInt64());
+			return Value(data.asInt64());
 		case PhysicalType::INT8:
-			return Value(val.asInt64());
+			return Value(data.asInt64());
 		case PhysicalType::INT16:
-			return Value(val.asInt64());
+			return Value(data.asInt64());
 		case PhysicalType::INT32:
-			return Value(val.asInt64());
+			return Value(data.asInt64());
 		case PhysicalType::INT64:
-			return Value(val.asInt64());
+			return Value(data.asInt64());
 		case PhysicalType::INT128:
-			return Value(val.asInt64());
+			return Value(data.asInt64());
 		case PhysicalType::FLOAT:
-			return Value(val.asFloat());
+			return Value(data.asFloat());
 		case PhysicalType::DOUBLE:
-			return Value(val.asDouble());
+			return Value(data.asDouble());
 		case PhysicalType::VARCHAR:
-			return Value(val.asString());
+			return Value(data.asString());
 		default:
-			throw NotImplementedException("Unsupported type for filter %s", val.asString());
+			throw NotImplementedException("Unsupported type for filter %s", data.asString());
 	}
 }
 
 
-unique_ptr<Policy> ConstructConstantFilter(Json::Value &filter){
-	auto val = ParseValue(filter["val"], filter["valType"]);
+unique_ptr<Policy> ParquetReader::ConstructConstantFilter(Json::Value &filter){
+	auto val = ParseValue(filter["val"], filter["valType"], user_data);
 	auto colName = filter["colName"].asString();
 	auto opType = (ExpressionType)(filter["expression_type"].asInt64());
 	return make_uniq<Policy>(colName, PolicyType::FILTER, opType, val);

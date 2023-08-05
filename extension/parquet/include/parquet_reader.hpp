@@ -112,6 +112,7 @@ public:
 	shared_ptr<ParquetFileMetadataCache> metadata;
 	ParquetOptions parquet_options;	
 	vector<unique_ptr<Policy>> policies;
+	Json::Value user_data;
 	MultiFileReaderData reader_data;
 	MultiFileReaderData policy_data;
 	bool policyChecker = true;
@@ -146,6 +147,7 @@ private:
 	void InitializeSchema();
 	void ConstructPolicies(Json::Value &json);
 	unique_ptr<Policy> ConstructConjFilter(Json::Value &filter);
+	unique_ptr<Policy> ConstructConstantFilter(Json::Value &filter);
 	unique_ptr<Policy> ConstructFilter(Json::Value &filter);
 	void PolicyViolation(DataChunk &output);
 	int ApplyPolicyFilter(vector<Vector> &v, Policy &filter, idx_t count);
