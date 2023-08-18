@@ -1,0 +1,76 @@
+[
+    {
+        "conditions": [
+            {
+                "operator": "join",
+                "attributes": ["ORDERS", "LINEITEM", "CUSTOMER"]
+            }
+        ],
+        "policy": [
+            {
+                "type": "filter",
+                "attributes":["LINEITEM.SHIPDATE"],
+                "operator": "greater_or_equal",
+                "val": "@calc(@current_date - 7)",
+                "requireData": true
+            }
+        ]
+    },
+    {
+        "conditions": [
+            {
+                "operator": "aggregate"
+            }
+        ],
+        "policy": [
+            {
+                "type": "count",
+                "attributes": ["REGION.REGIONKEY"],
+                "distinct": true,
+                "val": 1,
+                "operator": "equal",
+                "requireData": true
+            }
+        ]
+    },
+    {
+        "conditions": [
+            {
+                "operator": "like"
+            }
+        ],
+        "policy": [
+            {
+                "type": "query_plan",
+                "attributes": ["@op.like"],
+                "hasParent": true,
+                "requireData": false
+            }
+        ]
+    },
+    { 
+        "conditions": [
+            {
+                "attributes": ["SUPPLIER"]
+            }
+        ],
+        "policy": [
+            {
+                "type": "access_policy",
+                "attributes": ["USERDATA.CUST_KEY"],
+                "operator": "not_equal",
+                "val": null,
+                "requireData": true,
+                "must": false
+            },
+            {
+                "type": "access_policy",
+                "attributes": ["USERDATA.SUPP_KEY"],
+                "operator": "not_equal",
+                "val": null,
+                "requireData": true,
+                "must": false
+            }
+        ]
+    }
+]
