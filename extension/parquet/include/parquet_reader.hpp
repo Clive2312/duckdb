@@ -114,7 +114,6 @@ public:
 	vector<unique_ptr<Policy>> policies;
 	Json::Value user_data;
 	MultiFileReaderData reader_data;
-	MultiFileReaderData policy_data;
 	bool policyChecker = true;
 
 public:
