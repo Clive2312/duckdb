@@ -26,6 +26,8 @@ typedef std::function<unique_ptr<PhysicalResultCollector>(ClientContext &context
 struct ClientConfig {
 	//! The home directory used by the system (if any)
 	string home_directory;
+	//! If the policy checker and enforcer is enabled or not
+	bool enable_policy_checker = true;
 	//! If the query profiler is enabled or not.
 	bool enable_profiler = false;
 	//! If detailed query profiling is enabled
