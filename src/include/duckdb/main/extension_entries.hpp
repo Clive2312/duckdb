@@ -162,6 +162,7 @@ static constexpr ExtensionEntry EXTENSION_FUNCTIONS[] = {{"->>", "json"},
 
 static constexpr ExtensionEntry EXTENSION_SETTINGS[] = {
     {"binary_as_string", "parquet"},
+    {"policy_file", "parquet"},
     {"calendar", "icu"},
     {"http_retries", "httpfs"},
     {"http_retry_backoff", "httpfs"},

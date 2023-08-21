@@ -335,7 +335,9 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 
 	if(config.enable_policy_checker) {
 		profiler.StartPhase("policy_checker");
-		
+		Value policyfile; 
+		ClientContext::TryGetCurrentSetting("policy_file", policyfile);
+		policyfile.Print();
 		profiler.EndPhase();
 	}
 

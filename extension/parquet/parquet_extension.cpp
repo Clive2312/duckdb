@@ -198,6 +198,10 @@ public:
 				parquet_options.binary_as_string = true;
 			} else if (loption == "file_row_number") {
 				parquet_options.file_row_number = true;
+			} else if (loption == "policy_file") {
+				auto temp = option.second;
+				std::cout<<temp.front()<<'\n';
+				parquet_options.policy_file = StringValue::Get(temp.front());
 			} else {
 				throw NotImplementedException("Unsupported option for COPY FROM parquet: %s", option.first);
 			}
@@ -304,7 +308,7 @@ public:
 				parquet_options.binary_as_string = BooleanValue::Get(kv.second);
 			} else if (loption == "file_row_number") {
 				parquet_options.file_row_number = BooleanValue::Get(kv.second);
-			} else if(loption == "policy_file") {
+			} else if (loption == "policy_file") {
 				parquet_options.policy_file = StringValue::Get(kv.second);
 			}
 		}
@@ -802,6 +806,8 @@ void ParquetExtension::Load(DuckDB &db) {
 	config.replacement_scans.emplace_back(ParquetScanReplacement);
 	config.AddExtensionOption("binary_as_string", "In Parquet files, interpret binary data as a string.",
 	                          LogicalType::BOOLEAN);
+	config.AddExtensionOption("policy_file", "Read policies from the given file.",
+	                          LogicalType::VARCHAR);
 }
 
 std::string ParquetExtension::Name() {
