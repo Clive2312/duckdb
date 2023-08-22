@@ -11,13 +11,23 @@
 
 namespace duckdb {
 
+enum class PolicyType : uint8_t {
+	INVALID = 0,
+	FILTER = 1,
+	OTHER = 2
+};
 class Policy {
-public:
-	Policy(Json::Value) {
-	};
-	virtual ~Policy() {
-	};
 
+public:
+	string colName;
+	PolicyType policy_type;
+	ExpressionType expression_type;
+	vector<unique_ptr<Policy>> child_policies;
+	Value val;
+
+public:
+	Policy(Json::Value);
+	virtual ~Policy();
 };
 
 } // namespace duckdb
