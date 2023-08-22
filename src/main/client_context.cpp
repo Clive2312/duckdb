@@ -11,6 +11,7 @@
 #include "duckdb/common/serializer/buffered_file_writer.hpp"
 #include "duckdb/common/serializer/buffered_serializer.hpp"
 #include "duckdb/common/types/column/column_data_collection.hpp"
+#include "duckdb/common/json/json.h"
 #include "duckdb/execution/column_binding_resolver.hpp"
 #include "duckdb/execution/operator/helper/physical_result_collector.hpp"
 #include "duckdb/execution/physical_plan_generator.hpp"
@@ -47,7 +48,9 @@
 #include "duckdb/transaction/meta_transaction.hpp"
 #include "duckdb/transaction/transaction.hpp"
 #include "duckdb/transaction/transaction_manager.hpp"
+#include "duckdb/analyzer/policy.hpp"
 
+#include <fstream>
 namespace duckdb {
 
 struct ActiveQueryContext {
@@ -304,6 +307,12 @@ static bool IsExplainAnalyze(SQLStatement *statement) {
 	return explain.explain_type == ExplainType::EXPLAIN_ANALYZE;
 }
 
+void ParsePolicies(Json::Value &policyList){
+	for(auto &policy: policyList){
+		
+	}
+}
+
 shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientContextLock &lock, const string &query,
                                                                          unique_ptr<SQLStatement> statement,
                                                                          vector<Value> *values) {
@@ -335,8 +344,17 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 
 	if(config.enable_policy_checker) {
 		profiler.StartPhase("policy_checker");
-		Value policyfile; 
+		Value policyfile;
 		ClientContext::TryGetCurrentSetting("policy_file", policyfile);
+
+		if (policyfile.ToString() != "") {
+			std::ifstream handle(policyfile.ToString());
+			Json::Reader reader;
+			Json::Value completeJson;
+			reader.parse(handle, completeJson);
+			Analyzer analyzer(plan, *this, completeJson);
+			ParsePolicies(completeJson);
+		}
 		policyfile.Print();
 		profiler.EndPhase();
 	}
