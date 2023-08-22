@@ -807,7 +807,7 @@ void ParquetExtension::Load(DuckDB &db) {
 	config.AddExtensionOption("binary_as_string", "In Parquet files, interpret binary data as a string.",
 	                          LogicalType::BOOLEAN);
 	config.AddExtensionOption("policy_file", "Read policies from the given file.",
-	                          LogicalType::VARCHAR, "./policy/rule.json");
+	                          LogicalType::VARCHAR, Value("./policy/rule.json"));
 }
 
 std::string ParquetExtension::Name() {
