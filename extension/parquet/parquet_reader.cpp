@@ -422,7 +422,7 @@ void ParquetReader::InitializeSchema() {
 	}
 
 	// Constructing Policies
-	if (parquet_options.policy_file != "") {
+	if (parquet_options.policy_file != "" && policyChecker) {
 		std::ifstream handle(parquet_options.policy_file);
 		Json::Reader reader;
 		Json::Value completeJson;

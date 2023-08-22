@@ -114,7 +114,7 @@ public:
 	vector<unique_ptr<Policy>> policies;
 	Json::Value user_data;
 	MultiFileReaderData reader_data;
-	bool policyChecker = true;
+	bool policyChecker = false;
 
 public:
 	void InitializeScan(ParquetReaderScanState &state, vector<idx_t> groups_to_read);
