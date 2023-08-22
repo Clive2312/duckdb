@@ -48,9 +48,10 @@
 #include "duckdb/transaction/meta_transaction.hpp"
 #include "duckdb/transaction/transaction.hpp"
 #include "duckdb/transaction/transaction_manager.hpp"
-#include "duckdb/analyzer/policy.hpp"
+#include "duckdb/analyzer/analyzer.hpp"
 
 #include <fstream>
+#include <iostream>
 namespace duckdb {
 
 struct ActiveQueryContext {
@@ -307,12 +308,6 @@ static bool IsExplainAnalyze(SQLStatement *statement) {
 	return explain.explain_type == ExplainType::EXPLAIN_ANALYZE;
 }
 
-void ParsePolicies(Json::Value &policyList){
-	for(auto &policy: policyList){
-		
-	}
-}
-
 shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientContextLock &lock, const string &query,
                                                                          unique_ptr<SQLStatement> statement,
                                                                          vector<Value> *values) {
@@ -346,16 +341,16 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 		profiler.StartPhase("policy_checker");
 		Value policyfile;
 		ClientContext::TryGetCurrentSetting("policy_file", policyfile);
+		// policyfile.Print();
 
 		if (policyfile.ToString() != "") {
 			std::ifstream handle(policyfile.ToString());
 			Json::Reader reader;
 			Json::Value completeJson;
 			reader.parse(handle, completeJson);
-			Analyzer analyzer(plan, *this, completeJson);
-			ParsePolicies(completeJson);
+			// std::cout<<"HERE:: "<<completeJson[0]["conditions"][0]["operator"]<<'\n';
+			// Analyzer analyzer(std::move(plan), *this, completeJson);
 		}
-		policyfile.Print();
 		profiler.EndPhase();
 	}
 

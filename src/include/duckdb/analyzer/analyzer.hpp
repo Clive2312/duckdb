@@ -20,7 +20,6 @@ namespace duckdb {
 class Analyzer {
 public:
 	Analyzer(unique_ptr<LogicalOperator> plan, ClientContext &context, Json::Value policies): context(context){
-		printf("HERE: %s\n", policies[0]["conditions"]["operator"].asCString());
 	};
 
 	unique_ptr<LogicalOperator> ConditionMatcher(unique_ptr<LogicalOperator> plan);
