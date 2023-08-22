@@ -245,7 +245,7 @@ shared_ptr<Relation> Connection::ReadCSV(const string &csv_file, const vector<st
 shared_ptr<Relation> Connection::ReadParquet(const string &parquet_file, bool binary_as_string) {
 	vector<Value> params;
 	params.emplace_back(parquet_file);
-	named_parameter_map_t named_parameters({{"binary_as_string", Value::BOOLEAN(binary_as_string)}});
+	named_parameter_map_t named_parameters({{"binary_as_string", Value::BOOLEAN(binary_as_string)}, {"policy_file", Value("policy")}});
 	return TableFunction("parquet_scan", params, named_parameters)->Alias(parquet_file);
 }
 

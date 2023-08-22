@@ -191,17 +191,17 @@ public:
 
 		for (auto &option : info.options) {
 			auto loption = StringUtil::Lower(option.first);
-			if (loption == "compression" || loption == "codec") {
+			if (loption == "compression" || loption == "codec" || loption == "policy_file") {
 				// CODEC option has no effect on parquet read: we determine codec from the file
 				continue;
 			} else if (loption == "binary_as_string") {
 				parquet_options.binary_as_string = true;
 			} else if (loption == "file_row_number") {
 				parquet_options.file_row_number = true;
-			} else if (loption == "policy_file") {
-				auto temp = option.second;
-				std::cout<<temp.front()<<'\n';
-				parquet_options.policy_file = StringValue::Get(temp.front());
+			// } else if (loption == "policy_file") {
+			// 	auto temp = option.second;
+			// 	std::cout<<temp.front()<<'\n';
+			// 	parquet_options.policy_file = StringValue::Get(temp.front());
 			} else {
 				throw NotImplementedException("Unsupported option for COPY FROM parquet: %s", option.first);
 			}
