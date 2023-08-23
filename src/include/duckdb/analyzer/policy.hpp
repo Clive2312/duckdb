@@ -8,7 +8,7 @@
 
 #pragma once
 #include "duckdb/common/json/json.h"
-
+#include "duckdb/common/enums/logical_operator_type.hpp"
 namespace duckdb {
 
 enum class PolicyType : uint8_t {
@@ -18,7 +18,7 @@ enum class PolicyType : uint8_t {
 };
 
 struct Condition {
-	ExpressionClass type;
+	LogicalOperatorType op;
 	vector<string> attributes;
 	Condition(Json::Value &condition);
 };
