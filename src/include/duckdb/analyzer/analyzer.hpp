@@ -12,15 +12,14 @@
 #include "duckdb/planner/logical_operator_visitor.hpp"
 #include "duckdb/analyzer/policy.hpp"
 #include "duckdb/common/json/json.h"
-
+#include <iostream>
 #include <functional>
 
 namespace duckdb {
 
 class Analyzer {
 public:
-	Analyzer(unique_ptr<LogicalOperator> plan, ClientContext &context, Json::Value policies): context(context){
-	};
+	Analyzer(ClientContext &context, Json::Value &policies);
 
 	unique_ptr<LogicalOperator> ConditionMatcher(unique_ptr<LogicalOperator> plan);
 
@@ -28,9 +27,6 @@ public:
 
 private:
 	void ModifyPlan(unique_ptr<LogicalOperator> plan, Policy policy);
-
-private:
-	unique_ptr<LogicalOperator> plan;
 };
 
 } // namespace duckdb

@@ -3,7 +3,7 @@
 #include "duckdb/common/json/json.h"
 
 namespace duckdb {
-    Policy::Policy(Json::Value){
+    Policy::Policy(Json::Value &jsonPolicy):val(jsonPolicy){
         
     }
 }

@@ -19,15 +19,14 @@ enum class PolicyType : uint8_t {
 class Policy {
 
 public:
-	string colName;
-	PolicyType policy_type;
-	ExpressionType expression_type;
-	vector<unique_ptr<Policy>> child_policies;
-	Value val;
+	// string colName;
+	// PolicyType policy_type;
+	// ExpressionType expression_type;
+	// vector<unique_ptr<Policy>> child_policies;
+	Json::Value val;
 
 public:
-	Policy(Json::Value);
-	virtual ~Policy();
+	Policy(Json::Value &policy);
 };
 
 } // namespace duckdb
