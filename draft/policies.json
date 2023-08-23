@@ -2,75 +2,124 @@
     {
         "conditions": [
             {
-                "operator": "join",
-                "attributes": ["ORDERS", "LINEITEM", "CUSTOMER"]
+                "mode": "sql_match",
+                "sql": {
+                    "fun": "join",
+                    "left_table": "ORDERS",
+                    "right_table": {
+                        "type": "join",
+                        "left_table": "LINEITEM",
+                        "right_table": "CUSTOMER"
+                    }
+                }
             }
         ],
-        "policy": [
+        "policies": [
             {
-                "type": "filter",
-                "attributes":["LINEITEM.SHIPDATE"],
-                "operator": "greater_or_equal",
-                "val": "@calc(@current_date - 7)",
-                "requireData": true
+                "mode": "filter",
+                "expr": {
+                    "op": "and",
+                    "left": {
+                        "op": "<",
+                        "left": {
+                            "literal": "LINEITEM.SHIPDATE"
+                        },
+                        "right": "@current_date"
+                    },
+                    "right": {
+                        "op": ">",
+                        "left": {
+                            "literal": "LINEITEM.SHIPDATE"
+                        },
+                        "right": "@current_date - 7"
+                    }
+                }
             }
         ]
     },
     {
         "conditions": [
             {
-                "operator": "aggregate"
+                "mode": "sql_match",
+                "sql": {
+                    "fun": "aggregate"
+                }
             }
         ],
-        "policy": [
+        "policies": [
             {
-                "type": "count",
-                "attributes": ["REGION.REGIONKEY"],
-                "distinct": true,
-                "val": 1,
-                "operator": "equal",
-                "requireData": true
+                "mode": "bool_exp",
+                "expr": {
+                    "op": "=",
+                    "left": {
+                        "op": "count",
+                        "literal": "REGION.REGIONKEY",
+                        "distinct": true
+                    },
+                    "right": {
+                        "literal": 1
+                    }
+                }
             }
         ]
     },
     {
         "conditions": [
             {
-                "operator": "like"
+                "mode": "sql_match",
+                "sql": {
+                    "op": "like"
+                }
             }
         ],
-        "policy": [
+        "policies": [
             {
-                "type": "query_plan",
-                "attributes": ["@op.like"],
-                "hasParent": true,
-                "requireData": false
+                "mode": "sql_match",
+                "sql": {
+                    "stm": "subquery",
+                    "query":{
+                        "op": "like"
+                    }
+                }
             }
+                
         ]
     },
     { 
         "conditions": [
             {
-                "attributes": ["SUPPLIER"]
+                "mode": "sql_match",
+                "sql": {
+                    "table": "SUPPLIER"
+                }
             }
         ],
-        "policy": [
+        "policies": [
             {
-                "type": "access_policy",
-                "attributes": ["USERDATA.CUST_KEY"],
-                "operator": "not_equal",
-                "val": null,
-                "requireData": true,
-                "must": false
+                "mode": "bool",
+                "expr": {
+                    "op": "!=",
+                    "left": {
+                        "literal": "USERDATA.CUST_KEY"
+                    },
+                    "right": {
+                        "literal": null
+                    }
+                }
             },
             {
-                "type": "access_policy",
-                "attributes": ["USERDATA.SUPP_KEY"],
-                "operator": "not_equal",
-                "val": null,
-                "requireData": true,
-                "must": false
+                "mode": "bool_exp",
+                "expr": {
+                    "op": "!=",
+                    "left": {
+                        "literal": "USERDATA.SUPP_KEY"
+                    },
+                    "right": {
+                        "literal": null
+                    }
+                }
             }
-        ]
+        ],
+        "policies_rel": "or"
     }
 ]
