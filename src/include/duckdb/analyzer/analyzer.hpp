@@ -19,14 +19,17 @@ namespace duckdb {
 
 class Analyzer {
 public:
-	Analyzer(ClientContext &context, Json::Value &policies);
+	Analyzer(ClientContext &context, Json::Value &policies_json, unique_ptr<LogicalOperator> &plan);
+	vector<Policy> policies;
 
-	unique_ptr<LogicalOperator> ConditionMatcher(unique_ptr<LogicalOperator> plan);
-
+	vector<Policy> ConditionMatcher();
+	void VisitOperator(LogicalOperator &op);
 	ClientContext &context;
 
 private:
 	void ModifyPlan(unique_ptr<LogicalOperator> plan, Policy policy);
+	bool everything_referenced;
+	unordered_map<LogicalOperatorType, int> operators;
 };
 
 } // namespace duckdb

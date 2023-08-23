@@ -348,8 +348,8 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 			Json::Reader reader;
 			Json::Value completeJson;
 			reader.parse(handle, completeJson);
-			// std::cout<<"HERE:: "<<completeJson[0]["conditions"][0]["operator"]<<'\n';
-			Analyzer analyzer(*this, completeJson);
+			Analyzer analyzer(*this, completeJson, plan);
+			auto matchedPolicies = analyzer.ConditionMatcher();
 		}
 		profiler.EndPhase();
 	}
