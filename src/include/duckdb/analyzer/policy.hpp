@@ -16,6 +16,13 @@ enum class PolicyType : uint8_t {
 	FILTER = 1,
 	OTHER = 2
 };
+
+struct Condition {
+	ExpressionClass type;
+	vector<string> attributes;
+	Condition(Json::Value &condition);
+};
+
 class Policy {
 
 public:
@@ -23,10 +30,11 @@ public:
 	// PolicyType policy_type;
 	// ExpressionType expression_type;
 	// vector<unique_ptr<Policy>> child_policies;
-	Json::Value val;
+	Json::Value policy;
+	vector<Condition> conditions;
 
 public:
-	Policy(Json::Value &policy);
+	Policy(Json::Value &jsonPolicy);
 };
 
 } // namespace duckdb
