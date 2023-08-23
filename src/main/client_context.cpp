@@ -343,13 +343,13 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 		ClientContext::TryGetCurrentSetting("policy_file", policyfile);
 		// policyfile.Print();
 
-		if (policyfile.ToString() != "") {
+		if (!policyfile.IsNull()) {
 			std::ifstream handle(policyfile.ToString());
 			Json::Reader reader;
 			Json::Value completeJson;
 			reader.parse(handle, completeJson);
 			// std::cout<<"HERE:: "<<completeJson[0]["conditions"][0]["operator"]<<'\n';
-			// Analyzer analyzer(std::move(plan), *this, completeJson);
+			Analyzer analyzer(*this, completeJson);
 		}
 		profiler.EndPhase();
 	}
