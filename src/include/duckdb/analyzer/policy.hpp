@@ -9,6 +9,7 @@
 #pragma once
 #include "duckdb/common/json/json.h"
 #include "duckdb/common/enums/logical_operator_type.hpp"
+#include "duckdb/common/types/vector.hpp"
 namespace duckdb {
 
 enum class PolicyType : uint8_t {

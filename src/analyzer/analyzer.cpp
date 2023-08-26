@@ -54,22 +54,22 @@ void Analyzer::VisitOperator(LogicalOperator &op) {
 		if (everything_referenced) {
 			break;
 		}
-		auto &comp_join = op.Cast<LogicalComparisonJoin>();
-		if (comp_join.join_type == JoinType::MARK || comp_join.join_type == JoinType::SEMI ||
-		    comp_join.join_type == JoinType::ANTI) {
-			break;
-		}
-		// FIXME for now, we only push into the projection map for equality (hash) joins
-		// FIXME: add projection to LHS as well
-		bool has_equality = false;
-		for (auto &cond : comp_join.conditions) {
-			if (cond.comparison == ExpressionType::COMPARE_EQUAL) {
-				has_equality = true;
-			}
-		}
-		if (!has_equality) {
-			break;
-		}
+		// auto &comp_join = op.Cast<LogicalComparisonJoin>();
+		// if (comp_join.join_type == JoinType::MARK || comp_join.join_type == JoinType::SEMI ||
+		//     comp_join.join_type == JoinType::ANTI) {
+		// 	break;
+		// }
+		// // FIXME for now, we only push into the projection map for equality (hash) joins
+		// // FIXME: add projection to LHS as well
+		// bool has_equality = false;
+		// for (auto &cond : comp_join.conditions) {
+		// 	if (cond.comparison == ExpressionType::COMPARE_EQUAL) {
+		// 		has_equality = true;
+		// 	}
+		// }
+		// if (!has_equality) {
+		// 	break;
+		// }
 		// // now, for each of the columns of the RHS, check which columns need to be projected
 		// column_binding_set_t unused_bindings;
 		// ExtractUnusedColumnBindings(op.children[1]->GetColumnBindings(), unused_bindings);
