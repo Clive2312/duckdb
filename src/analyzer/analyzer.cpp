@@ -1,11 +1,11 @@
 #include "duckdb/analyzer/policy.hpp"
 #include "duckdb/analyzer/analyzer.hpp"
-#include "duckdb/planner/operator/logical_comparison_join.hpp"
+// #include "duckdb/planner/operator/logical_comparison_join.hpp"
 
 namespace duckdb {
 Analyzer::Analyzer(ClientContext &p_context, Json::Value &policies_json, unique_ptr<LogicalOperator> &plan): context(p_context){
     for(auto &policy_json: policies_json) {
-        policies.emplace_back(Policy(policies_json));
+        policies.emplace_back(Policy(policy_json));
     }
     VisitOperator(*plan);
 }
@@ -15,7 +15,7 @@ vector<Policy> Analyzer::ConditionMatcher() {
     for(auto &policy: policies){
         bool matched = true;
         for(auto &cond: policy.conditions){
-            if(operators.find(cond.op) == operators.end()){
+            if(operators.find((uint8_t)(cond.op)) == operators.end()){
                 matched = false;
                 break;
             }
@@ -42,8 +42,9 @@ void Analyzer::VisitOperator(LogicalOperator &op) {
 	case LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY: {
 		// FIXME: groups that are not referenced can be removed from projection
 		// recurse into the children of the aggregate
-        if(operators.find(op.type) == operators.end()) operators[op.type] = 0;
-        operators[op.type]++;
+        uint8_t key = (uint8_t)(op.type);
+        if(operators.find(key) == operators.end()) operators[key] = 0;
+        operators[key]++;
 		VisitOperator(*op.children[0]);
 		return;
 	}
@@ -103,7 +104,7 @@ void Analyzer::VisitOperator(LogicalOperator &op) {
 		break;
 	}
 	case LogicalOperatorType::LOGICAL_FILTER: {
-		auto &filter = op.Cast<LogicalFilter>();
+		// auto &filter = op.Cast<LogicalFilter>();
 		if (everything_referenced) {
 			break;
 		}

@@ -7,8 +7,12 @@
 namespace duckdb {
     Condition::Condition(Json::Value &condition){
         auto op = condition["operator"].asString();
-        if(op.compare("aggregate")) this->op = LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY;
-        for(auto &attr:condition["attributes"]);
+
+        if(op.compare("aggregate") == 0) {
+            this->op = LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY;
+        }
+
+        // for(auto &attr:condition["attributes"]);
     }
     Policy::Policy(Json::Value &jsonPolicy):policy(jsonPolicy["policy"]){
         for(auto &cond: jsonPolicy["conditions"]){
