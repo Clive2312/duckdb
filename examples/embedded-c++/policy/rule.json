@@ -1,29 +1,26 @@
 {
-    "filters": [{
-        "colName": "Region",
-        "val": "a", 
-        "valType": 200,
-        "policy_type": 0,
-        "expression_type": 26 
-    },
-    {
-        "policy_type": 0,
-        "expression_type": 50,
-        "child_filters": [
-            {
-                "colName":"Account",
-                "val": 400,
-                "valType": 9,
-                "policy_type": 0,
-                "expression_type": 28
-            },
-            {
-                "colName":"Account",
-                "val": 1000,
-                "valType": 9,
-                "policy_type": 0,
-                "expression_type": 27
+    "conditions": [
+        {
+            "mode": "sql_match",
+            "sql": {
+                "fun": "aggregate"
             }
-        ]
-    }]
+        }
+    ],
+    "policies": [
+        {
+            "mode": "bool_exp",
+            "expr": {
+                "op": "=",
+                "left": {
+                    "op": "count",
+                    "literal": "REGION.REGIONKEY",
+                    "distinct": true
+                },
+                "right": {
+                    "literal": 1
+                }
+            }
+        }
+    ]
 }
