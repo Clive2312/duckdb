@@ -3,13 +3,13 @@
         "conditions": [
             {
                 "mode": "sql_match",
-                "sql": {
-                    "fun": "join",
-                    "left_table": "ORDERS",
-                    "right_table": {
-                        "type": "join",
-                        "left_table": "LINEITEM",
-                        "right_table": "CUSTOMER"
+                "expr": {
+                    "sql_op": "join",
+                    "left": "ORDERS",
+                    "right": {
+                        "sql_op": "join",
+                        "left": "LINEITEM",
+                        "right": "CUSTOMER"
                     }
                 }
             }
@@ -18,20 +18,20 @@
             {
                 "mode": "filter",
                 "expr": {
-                    "op": "and",
+                    "sql_op": "and",
                     "left": {
                         "op": "<",
-                        "left": {
-                            "literal": "LINEITEM.SHIPDATE"
-                        },
+                        "left": "LINEITEM.SHIPDATE",
                         "right": "@current_date"
                     },
                     "right": {
                         "op": ">",
-                        "left": {
-                            "literal": "LINEITEM.SHIPDATE"
-                        },
-                        "right": "@current_date - 7"
+                        "left": "LINEITEM.SHIPDATE",
+                        "right": {
+                            "op": "-",
+                            "left": "@current_date",
+                            "right": "7"
+                        }
                     }
                 }
             }
@@ -41,8 +41,8 @@
         "conditions": [
             {
                 "mode": "sql_match",
-                "sql": {
-                    "fun": "aggregate"
+                "expr": {
+                    "sql_op": "aggregate"
                 }
             }
         ],
@@ -52,13 +52,13 @@
                 "expr": {
                     "op": "=",
                     "left": {
-                        "op": "count",
-                        "literal": "REGION.REGIONKEY",
-                        "distinct": true
+                        "sql_op": "count",
+                        "right": {
+                            "sql_op": "distinct",
+                            "right": "REGION.REGIONKEY"
+                        }
                     },
-                    "right": {
-                        "literal": 1
-                    }
+                    "right": 1
                 }
             }
         ]
@@ -67,19 +67,16 @@
         "conditions": [
             {
                 "mode": "sql_match",
-                "sql": {
-                    "op": "like"
+                "expr": {
+                    "op": "~~"
                 }
             }
         ],
         "policies": [
             {
-                "mode": "sql_match",
-                "sql": {
-                    "stm": "subquery",
-                    "query":{
-                        "op": "like"
-                    }
+                "mode": "subquery_match",
+                "expr":{
+                    "op": "~~"
                 }
             }
                 
@@ -89,34 +86,27 @@
         "conditions": [
             {
                 "mode": "sql_match",
-                "sql": {
-                    "table": "SUPPLIER"
+                "expr": {
+                    "sql_op": "scan",
+                    "right": "SUPPLIER"
                 }
             }
         ],
         "policies": [
             {
-                "mode": "bool",
+                "mode": "bool_exp",
                 "expr": {
                     "op": "!=",
-                    "left": {
-                        "literal": "USERDATA.CUST_KEY"
-                    },
-                    "right": {
-                        "literal": null
-                    }
+                    "left": "USERDATA.CUST_KEY",
+                    "right": null
                 }
             },
             {
                 "mode": "bool_exp",
                 "expr": {
                     "op": "!=",
-                    "left": {
-                        "literal": "USERDATA.SUPP_KEY"
-                    },
-                    "right": {
-                        "literal": null
-                    }
+                    "left": "USERDATA.SUPP_KEY",
+                    "right": null
                 }
             }
         ],
