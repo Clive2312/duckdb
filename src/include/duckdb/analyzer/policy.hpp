@@ -10,29 +10,29 @@
 #include "duckdb/common/json/json.h"
 #include "duckdb/common/enums/logical_operator_type.hpp"
 #include "duckdb/common/types/vector.hpp"
+#include "duckdb/common/enums/cond_policy_mode.hpp"
 namespace duckdb {
 
-enum class PolicyType : uint8_t {
-	INVALID = 0,
-	FILTER = 1,
-	OTHER = 2
+struct StatementAST {
+	StatementAST(Json::Value &sql);
+	LogicalOperatorType logical_op;
+	ExpressionType op;
+	Value attribute;
+	vector<unique_ptr<StatementAST>> l_children;
+	vector<unique_ptr<StatementAST>> r_children;
 };
-
-struct Condition {
-	LogicalOperatorType op;
-	vector<string> attributes;
-	Condition(Json::Value &condition);
+struct Statement {
+	CondPolicyMode mode;
+	unique_ptr<StatementAST> children;
+	Statement(Json::Value &statement);
 };
 
 class Policy {
 
 public:
-	// string colName;
-	// PolicyType policy_type;
-	// ExpressionType expression_type;
-	// vector<unique_ptr<Policy>> child_policies;
-	Json::Value policy;
-	vector<Condition> conditions;
+	ExpressionType conjunction;
+	vector<unique_ptr<Statement>> policies;
+	vector<unique_ptr<Statement>> conditions;
 
 public:
 	Policy(Json::Value &jsonPolicy);
