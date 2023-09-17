@@ -4,11 +4,17 @@
             "mode": "sql_match",
             "expr": {
                 "sql_op": "join",
-                "left": "ORDERS",
+                "left": {
+                    "literal": "@ORDERS"
+                },
                 "right": {
                     "sql_op": "join",
-                    "left": "LINEITEM",
-                    "right": "CUSTOMER"
+                    "left": {
+                        "literal": "@LINEITEM"
+                    },
+                    "right": {
+                        "literal": "@CUSTOMER"
+                    }
                 }
             }
         }
@@ -18,8 +24,12 @@
             "mode": "filter",
             "expr": {
                 "sql_op": "==",
-                "left": "ORDERS.ORDERSTATUS",
-                "right": "PENDING"
+                "left": {
+                    "literal": "@ORDERS.ORDERSTATUS"
+                },
+                "right": {
+                    "literal": "PENDING"
+                }
             }
         }
     ]

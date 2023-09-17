@@ -7,6 +7,9 @@
 namespace duckdb {
 
     StatementAST::StatementAST(Json::Value &expr) {
+        if(!expr["literal"].empty()) {
+            attribute = Value(expr["literal"].asString());
+        }
         if(!expr["sql_op"].empty()) {
             auto op = expr["sql_op"].asString();
             if(op.compare("join") == 0) {
