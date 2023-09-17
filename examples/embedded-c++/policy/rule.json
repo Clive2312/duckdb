@@ -1,26 +1,26 @@
-{
+[{
     "conditions": [
         {
             "mode": "sql_match",
-            "sql": {
-                "fun": "aggregate"
+            "expr": {
+                "sql_op": "join",
+                "left": "ORDERS",
+                "right": {
+                    "sql_op": "join",
+                    "left": "LINEITEM",
+                    "right": "CUSTOMER"
+                }
             }
         }
     ],
     "policies": [
         {
-            "mode": "bool_exp",
+            "mode": "filter",
             "expr": {
-                "op": "=",
-                "left": {
-                    "op": "count",
-                    "literal": "REGION.REGIONKEY",
-                    "distinct": true
-                },
-                "right": {
-                    "literal": 1
-                }
+                "sql_op": "==",
+                "left": "ORDERS.ORDERSTATUS",
+                "right": "PENDING"
             }
         }
     ]
-}
+}]
