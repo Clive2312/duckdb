@@ -6,9 +6,9 @@
 
 namespace duckdb {
 
-    StatementAST::StatementAST(Json::Value &sql) {
-        if(!sql["sql_op"].empty()) {
-            auto op = sql["sql_op"].asString();
+    StatementAST::StatementAST(Json::Value &expr) {
+        if(!expr["sql_op"].empty()) {
+            auto op = expr["sql_op"].asString();
             if(op.compare("join") == 0) {
                 this->logical_op = LogicalOperatorType::LOGICAL_JOIN;
             // } else if(op.compare("join") == 0) {
@@ -20,6 +20,15 @@ namespace duckdb {
             // } else if(op.compare("join") == 0) {
             //     this->op = LogicalOperatorType::LOGICAL_JOIN;
             }
+            if(op.compare("==") == 0) {
+                this->op = ExpressionType::COMPARE_EQUAL;
+            }
+            if(!expr["left"].empty()) {
+                l_child = make_uniq<StatementAST>(expr["left"]);
+            } else l_child = NULL;
+            if(!expr["right"].empty()) {
+                r_child = make_uniq<StatementAST>(expr["right"]);
+            } else r_child = NULL;
         }
     }
 
@@ -42,11 +51,6 @@ namespace duckdb {
     }
 
     Policy::Policy(Json::Value &jsonPolicy) {
-        if(jsonPolicy["policies_rel"].asString() == "or") {
-            conjunction = ExpressionType::CONJUNCTION_OR;
-        } else {
-            conjunction = ExpressionType::CONJUNCTION_AND;
-        }
 
         for(auto &cond: jsonPolicy["conditions"]) {
             conditions.emplace_back(make_uniq<Statement>(cond));

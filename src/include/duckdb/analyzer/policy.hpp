@@ -18,8 +18,8 @@ struct StatementAST {
 	LogicalOperatorType logical_op;
 	ExpressionType op;
 	Value attribute;
-	vector<unique_ptr<StatementAST>> l_children;
-	vector<unique_ptr<StatementAST>> r_children;
+	unique_ptr<StatementAST> l_child;
+	unique_ptr<StatementAST> r_child;
 };
 struct Statement {
 	CondPolicyMode mode;
@@ -30,7 +30,6 @@ struct Statement {
 class Policy {
 
 public:
-	ExpressionType conjunction;
 	vector<unique_ptr<Statement>> policies;
 	vector<unique_ptr<Statement>> conditions;
 
