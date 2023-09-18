@@ -10,27 +10,30 @@
 #include "duckdb/common/json/json.h"
 #include "duckdb/common/enums/logical_operator_type.hpp"
 #include "duckdb/common/types/vector.hpp"
+#include "duckdb/common/enums/expression_type.hpp"
 #include "duckdb/common/enums/cond_policy_mode.hpp"
 namespace duckdb {
 
 struct StatementAST {
-	StatementAST(Json::Value &sql);
 	LogicalOperatorType logical_op;
 	ExpressionType op;
 	Value attribute;
-	unique_ptr<StatementAST> l_child;
-	unique_ptr<StatementAST> r_child;
+
+	StatementAST* l_child = nullptr;
+	StatementAST* r_child = nullptr;
+	StatementAST(Json::Value &sql);
 };
+
 struct Statement {
 	CondPolicyMode mode;
-	unique_ptr<StatementAST> children;
+	StatementAST* expr = nullptr;
 	Statement(Json::Value &statement);
 };
 
 class Policy {
 
 public:
-	vector<unique_ptr<Statement>> policies;
+	vector<unique_ptr<Statement>> actions;
 	vector<unique_ptr<Statement>> conditions;
 
 public:
