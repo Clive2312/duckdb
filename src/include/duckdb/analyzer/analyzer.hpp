@@ -25,9 +25,9 @@ public:
 	vector<unique_ptr<Policy>> policies;
 
 public:
-	Analyzer(Json::Value &policies_json, LogicalOperator &plan);
+	Analyzer(Json::Value &policies_json);
 
-	vector<unique_ptr<Policy>> ConditionMatcher();
+	vector<unique_ptr<Policy>> ConditionMatcher(LogicalOperator &plan);
 	void VisitOperator(LogicalOperator &op);
 
 private:

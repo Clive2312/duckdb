@@ -348,8 +348,8 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 			Json::Reader reader;
 			Json::Value completeJson;
 			reader.parse(handle, completeJson);
-			Analyzer analyzer(completeJson, *plan);
-			// auto matchedPolicies = analyzer.ConditionMatcher();
+			Analyzer analyzer(completeJson);
+			auto matchedPolicies = analyzer.ConditionMatcher(*plan);
 			plan->Print();
 		}
 		profiler.EndPhase();

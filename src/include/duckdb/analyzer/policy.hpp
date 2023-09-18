@@ -15,7 +15,7 @@
 namespace duckdb {
 
 struct StatementAST {
-	LogicalOperatorType logical_op;
+	LogicalOperatorType logical_op = LogicalOperatorType::LOGICAL_INVALID;
 	ExpressionType op;
 	Value attribute;
 

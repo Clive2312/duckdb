@@ -3,125 +3,65 @@
 // #include "duckdb/planner/operator/logical_comparison_join.hpp"
 
 namespace duckdb {
-Analyzer::Analyzer(Json::Value &policies_json, LogicalOperator &plan){
+Analyzer::Analyzer(Json::Value &policies_json){
     for(auto &policy: policies_json) {
         policies.emplace_back(make_uniq<Policy>(policy));
     }
-    // VisitOperator(*plan);
 }
 
-vector<unique_ptr<Policy>> Analyzer::ConditionMatcher() {
+vector<unique_ptr<Policy>> Analyzer::ConditionMatcher(LogicalOperator &plan) {
     vector<unique_ptr<Policy>> res = {};
     for(auto &policy: policies){
-        bool matched = true;
-        for(auto &cond: policy->conditions){
-            if(operators.find((uint8_t)(cond->expr->op)) == operators.end()){
-                matched = false;
-                break;
-            }
-        }
-        if(matched){
+        if(MatchConditions(policy->conditions, plan)){
             res.emplace_back(std::move(policy));
         }
     }
     return res;
 }
-void StandardVisitOperator(LogicalOperator &op) {
-	// LogicalOperatorVisitor::VisitOperatorExpressions(op);
-	// if (op.type == LogicalOperatorType::LOGICAL_DELIM_JOIN) {
-	// 	// visit the duplicate eliminated columns on the LHS, if any
-	// 	auto &delim_join = op.Cast<LogicalDelimJoin>();
-	// 	for (auto &expr : delim_join.duplicate_eliminated_columns) {
-	// 		VisitExpression(&expr);
-	// 	}
-	// }
-	// LogicalOperatorVisitor::VisitOperatorChildren(op);
+
+bool MatchConditions(vector<unique_ptr<Statement>> &conditions, LogicalOperator &plan){
+    for(auto &cond: conditions) {
+        if(cond->mode == CondPolicyMode::SQL_MATCH && TreeMatcher(cond->expr, plan)) return true;
+    }
+    return false;
 }
-void Analyzer::VisitOperator(LogicalOperator &op) {
-	switch (op.type) {
-	case LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY: {
-		// FIXME: groups that are not referenced can be removed from projection
-		// recurse into the children of the aggregate
-        uint8_t key = (uint8_t)(op.type);
-        if(operators.find(key) == operators.end()) operators[key] = 0;
-        operators[key]++;
-		VisitOperator(*op.children[0]);
-		return;
-	}
-	case LogicalOperatorType::LOGICAL_ASOF_JOIN:
-	case LogicalOperatorType::LOGICAL_DELIM_JOIN:
-	case LogicalOperatorType::LOGICAL_COMPARISON_JOIN: {
-		if (everything_referenced) {
-			break;
-		}
-		// auto &comp_join = op.Cast<LogicalComparisonJoin>();
-		// if (comp_join.join_type == JoinType::MARK || comp_join.join_type == JoinType::SEMI ||
-		//     comp_join.join_type == JoinType::ANTI) {
-		// 	break;
-		// }
-		// // FIXME for now, we only push into the projection map for equality (hash) joins
-		// // FIXME: add projection to LHS as well
-		// bool has_equality = false;
-		// for (auto &cond : comp_join.conditions) {
-		// 	if (cond.comparison == ExpressionType::COMPARE_EQUAL) {
-		// 		has_equality = true;
-		// 	}
-		// }
-		// if (!has_equality) {
-		// 	break;
-		// }
-		// // now, for each of the columns of the RHS, check which columns need to be projected
-		// column_binding_set_t unused_bindings;
-		// ExtractUnusedColumnBindings(op.children[1]->GetColumnBindings(), unused_bindings);
 
-		// // now recurse into the filter and its children
-		// StandardVisitOperator(op);
+bool TreeMatcher(StatementAST* cond, LogicalOperator &op){
+    if(cond == nullptr) return true;
+    if(op.type == cond->logical_op || StringUtil::Lower(op.GetName()) == GetName(cond->attribute)) {
 
-		// // then generate the projection map
-		// GenerateProjectionMap(op.children[1]->GetColumnBindings(), unused_bindings, comp_join.right_projection_map);
-		return;
-	}
-	case LogicalOperatorType::LOGICAL_UNION:
-	case LogicalOperatorType::LOGICAL_EXCEPT:
-	case LogicalOperatorType::LOGICAL_INTERSECT:
-		// for set operations we don't remove anything, just recursively visit the children
-		// FIXME: for UNION we can remove unreferenced columns as long as everything_referenced is false (i.e. we
-		// encounter a UNION node that is not preceded by a DISTINCT)
-		for (auto &child : op.children) {
-			VisitOperator(*child);
-		}
-		return;
-	case LogicalOperatorType::LOGICAL_PROJECTION: {
-		// then recurse into the children of this projection
-        VisitOperator(*op.children[0]);
-		return;
-	}
-	case LogicalOperatorType::LOGICAL_DISTINCT: {
-		// distinct, all projected columns are used for the DISTINCT computation
-		// mark all columns as used and continue to the children
-		// FIXME: DISTINCT with expression list does not implicitly reference everything
-		everything_referenced = true;
-		break;
-	}
-	case LogicalOperatorType::LOGICAL_FILTER: {
-		// auto &filter = op.Cast<LogicalFilter>();
-		if (everything_referenced) {
-			break;
-		}
-		// // filter, figure out which columns are not needed after the filter
-		// column_binding_set_t unused_bindings;
-		// ExtractUnusedColumnBindings(op.children[0]->GetColumnBindings(), unused_bindings);
+        bool leftMatch = false, rightMatch = false;
 
-		// // now recurse into the filter and its children
-		// StandardVisitOperator(op);
+        for(int i = 0; i < op.children.size(); i++) {
+            if(!leftMatch && TreeMatcher(cond->l_child, *op.children[i])){
+                leftMatch = true;
+            }
 
-		// // then generate the projection map
-		// GenerateProjectionMap(op.children[0]->GetColumnBindings(), unused_bindings, filter.projection_map);
-		return;
-	}
-	default:
-		break;
-	}
+            if(!rightMatch && TreeMatcher(cond->l_child, *op.children[i])){
+                rightMatch = true;
+            }
+
+            if(rightMatch && rightMatch) {
+                return true;
+            }
+        }
+        return false;
+    } 
+    if(op.children.empty()) return false;
+    return TreeMatcher(cond, *op.children[0]);
+}
+
+string GetName(Value &attrib) {
+    string val = attrib.ToString();
+    if(!val.empty()) {
+        if(val[0] != '@') {
+            return StringUtil::Lower(val);
+        }
+        else {
+            return StringUtil::Lower(val.substr(1, val.size() - 1));
+        }
+    }
+    return "";
 }
 
 }
