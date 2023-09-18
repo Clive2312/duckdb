@@ -22,16 +22,17 @@ namespace duckdb {
 
 class Analyzer {
 public:
-	Analyzer(ClientContext &context, Json::Value &policies_json, unique_ptr<LogicalOperator> &plan);
-	vector<Policy> policies;
+	vector<unique_ptr<Policy>> policies;
 
-	vector<Policy> ConditionMatcher();
+public:
+	Analyzer(Json::Value &policies_json, LogicalOperator &plan);
+
+	vector<unique_ptr<Policy>> ConditionMatcher();
 	void VisitOperator(LogicalOperator &op);
-	ClientContext &context;
 
 private:
-	void ModifyPlan(unique_ptr<LogicalOperator> plan, Policy policy);
-	bool everything_referenced;
+	void ModifyPlan(LogicalOperator &plan, Policy policy);
+	bool everything_referenced = false;
 	unordered_map<uint8_t, int> operators;
 };
 
