@@ -3,25 +3,25 @@
 // #include "duckdb/planner/operator/logical_comparison_join.hpp"
 
 namespace duckdb {
-Analyzer::Analyzer(ClientContext &p_context, Json::Value &policies_json, unique_ptr<LogicalOperator> &plan): context(p_context){
-    for(auto &policy_json: policies_json) {
-        policies.emplace_back(Policy(policy_json));
+Analyzer::Analyzer(Json::Value &policies_json, LogicalOperator &plan){
+    for(auto &policy: policies_json) {
+        policies.emplace_back(make_uniq<Policy>(policy));
     }
-    VisitOperator(*plan);
+    // VisitOperator(*plan);
 }
 
-vector<Policy> Analyzer::ConditionMatcher() {
-    vector<Policy> res;
+vector<unique_ptr<Policy>> Analyzer::ConditionMatcher() {
+    vector<unique_ptr<Policy>> res = {};
     for(auto &policy: policies){
         bool matched = true;
-        for(auto &cond: policy.conditions){
-            if(operators.find((uint8_t)(cond.op)) == operators.end()){
+        for(auto &cond: policy->conditions){
+            if(operators.find((uint8_t)(cond->expr->op)) == operators.end()){
                 matched = false;
                 break;
             }
         }
         if(matched){
-                res.emplace_back(policy);
+            res.emplace_back(std::move(policy));
         }
     }
     return res;
