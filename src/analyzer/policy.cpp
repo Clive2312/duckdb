@@ -11,7 +11,7 @@ namespace duckdb {
         if(!expr["sql_op"].empty()) {
             auto op = expr["sql_op"].asString();
             if(op.compare("join") == 0) {
-                logical_op = LogicalOperatorType::LOGICAL_JOIN;
+                logical_op = LogicalOperatorType::LOGICAL_COMPARISON_JOIN;
             }
 
             // } else if(op.compare("join") == 0) {
