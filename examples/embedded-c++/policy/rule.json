@@ -23,13 +23,39 @@
         {
             "mode": "filter",
             "expr": {
-                "sql_op": "==",
+                "sql_op": "=",
                 "left": {
                     "literal": "@ORDERS.ORDERSTATUS"
                 },
                 "right": {
                     "literal": "PENDING"
                 }
+            }
+        }
+    ]
+},
+{
+    "conditions": [
+        {
+            "mode": "sql_match",
+            "expr": {
+                "sql_op": "aggregate"
+            }
+        }
+    ],
+    "policies": [
+        {
+            "mode": "bool_exp",
+            "expr": {
+                "sql_op": "=",
+                "left": {
+                    "sql_op": "count",
+                    "right": {
+                        "sql_op": "distinct",
+                        "right": "REGION.REGIONKEY"
+                    }
+                },
+                "right": 1
             }
         }
     ]

@@ -12,21 +12,17 @@ namespace duckdb {
             auto op = expr["sql_op"].asString();
             if(op.compare("join") == 0) {
                 logical_op = LogicalOperatorType::LOGICAL_COMPARISON_JOIN;
-            }
-
-            // } else if(op.compare("join") == 0) {
-            //     this->op = LogicalOperatorType::LOGICAL_JOIN;
-            // } else if(op.compare("and") == 0) {
+            } else if(op.compare("=") == 0) {
+                this->op = ExpressionType::COMPARE_EQUAL;
+            } else if(op.compare("aggregate") == 0 || op.compare("count") == 0 || op.compare("average") == 0) {
+                logical_op = LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY;
+            } 
+            // else if(op.compare("and") == 0) {
             //     this->op = LogicalOperatorType::;
             // } else if(op.compare("join") == 0) {
             //     this->op = LogicalOperatorType::LOGICAL_JOIN;
             // } else if(op.compare("join") == 0) {
             //     this->op = LogicalOperatorType::LOGICAL_JOIN;
-
-            if(op.compare("==") == 0) {
-                this->op = ExpressionType::COMPARE_EQUAL;
-            }
-            
         }
         if(!expr["left"].empty()) {
             l_child = new StatementAST(expr["left"]);
