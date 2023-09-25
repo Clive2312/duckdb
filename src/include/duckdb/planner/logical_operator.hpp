@@ -15,6 +15,7 @@
 #include "duckdb/planner/column_binding.hpp"
 #include "duckdb/planner/expression.hpp"
 #include "duckdb/planner/logical_operator_visitor.hpp"
+#include "duckdb/analyzer/policy.hpp"
 #include "duckdb/planner/plan_serialization.hpp"
 
 #include <algorithm>
@@ -48,7 +49,8 @@ public:
 	//! Estimated Cardinality
 	idx_t estimated_cardinality;
 	bool has_estimated_cardinality;
-
+	//! Policies to check
+	vector<shared_ptr<Action>> actions;
 	unique_ptr<EstimatedProperties> estimated_props;
 
 public:
