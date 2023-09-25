@@ -73,5 +73,26 @@ vector<unique_ptr<Policy>> Analyzer::ConditionMatcher(LogicalOperator &plan) {
     return res;
 }
 
+void InsertIntoOps(shared_ptr<Action> action, LogicalOperator &op){
+    if(op.type == action->op) {
+        op.actions.emplace_back(action);
+    } 
+
+    for(auto &child: op.children) {
+        InsertIntoOps(action, *child);
+    }
+}
+
+unique_ptr<LogicalOperator> Analyzer::MatchAndInsertPolicies(unique_ptr<LogicalOperator> plan) {
+    auto policies = ConditionMatcher(*plan);
+
+    for(auto policy: policies) {
+        for(auto &action: policy->data_actions) {
+            InsertIntoOps(action, *plan);
+        }
+    }
+    return std::move(plan);
+}
+
 
 }
