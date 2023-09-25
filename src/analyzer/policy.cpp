@@ -4,8 +4,25 @@
 #include "duckdb/common/json/json.h"
 
 namespace duckdb {
+
+    DataConstraint::DataConstraint(Json::Value &data) {
+        table = data["table"].asString();
+        column = data["column"].asString();
+        min_count = data["min_count"].asInt();
+        max_count = data["max_count"].asInt();
+    }
+
+    Action::Action(Json::Value &action) {
+        auto op = action["op"].asString();
+        if(op.compare("aggregare") == 0) {
+            this->op = LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY;
+        }
+        for(auto data: action["data"]) {
+            dConstraints.emplace_back(new DataConstraint(data));
+        }
+    }
+
     StatementAST::StatementAST(Json::Value &expr) {
-            
         attribute = Value::CreateValue(expr["literal"].asString());
 
         if(!expr["sql_op"].empty()) {
@@ -52,11 +69,15 @@ namespace duckdb {
     Policy::Policy(Json::Value &jsonPolicy) {
 
         for(auto &actionJson: jsonPolicy["policies"]) {
-            actions.emplace_back(make_uniq<Statement>(actionJson));
+            actions.emplace_back(make_shared<Statement>(actionJson));
         }
 
         for(auto &cond: jsonPolicy["conditions"]) {
-            conditions.emplace_back(make_uniq<Statement>(cond));
+            conditions.emplace_back(make_shared<Statement>(cond));
+        }
+
+        for(auto &action: jsonPolicy["data_actions"]) {
+            data_actions.emplace_back(make_shared<Action>(action));
         }
 
     }
