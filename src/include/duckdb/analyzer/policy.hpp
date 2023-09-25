@@ -14,6 +14,18 @@
 #include "duckdb/common/enums/cond_policy_mode.hpp"
 namespace duckdb {
 
+struct DataConstraint {
+	string table;
+	string column;
+	int min_count = -1;
+	int max_count = -1;
+	DataConstraint(Json::Value &data);
+};
+struct Action {
+	LogicalOperatorType op;
+	vector<DataConstraint *> dConstraints;
+	Action(Json::Value &action);
+};
 struct StatementAST {
 	LogicalOperatorType logical_op = LogicalOperatorType::LOGICAL_INVALID;
 	ExpressionType op;
@@ -33,8 +45,9 @@ struct Statement {
 class Policy {
 
 public:
-	vector<unique_ptr<Statement>> actions;
-	vector<unique_ptr<Statement>> conditions;
+	vector<shared_ptr<Statement>> actions;
+	vector<shared_ptr<Statement>> conditions;
+	vector<shared_ptr<Action>> data_actions;
 
 public:
 	Policy(Json::Value &jsonPolicy);
