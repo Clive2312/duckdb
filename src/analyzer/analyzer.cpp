@@ -5,7 +5,7 @@
 namespace duckdb {
 Analyzer::Analyzer(Json::Value &policies_json){
     for(auto &policy: policies_json) {
-        policies.emplace_back(make_uniq<Policy>(policy));
+        policies.emplace_back(make_shared<Policy>(policy));
     }
 }
 
@@ -56,18 +56,18 @@ bool TreeMatcher(StatementAST* cond, LogicalOperator &op){
     return TreeMatcher(cond, *op.children[0]);
 }
 
-bool MatchConditions(vector<unique_ptr<Statement>> &conditions, LogicalOperator &plan){
+bool MatchConditions(vector<shared_ptr<Statement>> &conditions, LogicalOperator &plan){
     for(auto &cond: conditions) {
         if(cond->mode == CondPolicyMode::SQL_MATCH && TreeMatcher(cond->expr, plan)) return true;
     }
     return false;
 }
 
-vector<unique_ptr<Policy>> Analyzer::ConditionMatcher(LogicalOperator &plan) {
-    vector<unique_ptr<Policy>> res = {};
+vector<shared_ptr<Policy>> Analyzer::ConditionMatcher(LogicalOperator &plan) {
+    vector<shared_ptr<Policy>> res = {};
     for(auto &policy: policies){
         if(MatchConditions(policy->conditions, plan)){
-            res.emplace_back(std::move(policy));
+            res.emplace_back(policy);
         }
     }
     return res;
