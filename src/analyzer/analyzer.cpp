@@ -41,19 +41,28 @@ bool TreeMatcher(StatementAST* cond, LogicalOperator &op){
                 leftMatch = true;
             }
 
-            if(!rightMatch && TreeMatcher(cond->l_child, *op.children[i])){
+            if(!rightMatch && TreeMatcher(cond->r_child, *op.children[i])){
                 rightMatch = true;
             }
 
-            if(rightMatch && rightMatch) {
+            if(leftMatch && rightMatch) {
                 return true;
             }
         }
         if(op.children.empty()) return true;
-        return false;
     } 
     if(op.children.empty()) return false;
-    return TreeMatcher(cond, *op.children[0]);
+
+    bool matched = false;
+    for(int i = 0; i < op.children.size(); i++) {
+        if(!matched && TreeMatcher(cond, *op.children[i])){
+            matched = true;
+        }
+        if(matched) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool MatchConditions(vector<shared_ptr<Statement>> &conditions, LogicalOperator &plan){
