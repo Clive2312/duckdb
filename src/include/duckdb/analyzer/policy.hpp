@@ -26,27 +26,27 @@ struct Action {
 	vector<DataConstraint *> dConstraints;
 	Action(Json::Value &action);
 };
-struct StatementAST {
+struct ConditionAST {
 	LogicalOperatorType logical_op = LogicalOperatorType::LOGICAL_INVALID;
 	ExpressionType op;
 	Value attribute;
 
-	StatementAST* l_child = nullptr;
-	StatementAST* r_child = nullptr;
-	StatementAST(Json::Value &sql);
+	ConditionAST* l_child = nullptr;
+	ConditionAST* r_child = nullptr;
+	ConditionAST(Json::Value &sql);
 };
 
-struct Statement {
+struct Condition {
 	CondPolicyMode mode;
-	StatementAST* expr = nullptr;
-	Statement(Json::Value &statement);
+	ConditionAST* expr = nullptr;
+	Condition(Json::Value &statement);
 };
 
 class Policy {
 
 public:
-	vector<shared_ptr<Statement>> actions;
-	vector<shared_ptr<Statement>> conditions;
+	vector<shared_ptr<Condition>> actions;
+	vector<shared_ptr<Condition>> conditions;
 	vector<shared_ptr<Action>> data_actions;
 
 public:

@@ -22,7 +22,7 @@ namespace duckdb {
         }
     }
 
-    StatementAST::StatementAST(Json::Value &expr) {
+    ConditionAST::ConditionAST(Json::Value &expr) {
         attribute = Value::CreateValue(expr["literal"].asString());
 
         if(!expr["sql_op"].empty()) {
@@ -42,15 +42,15 @@ namespace duckdb {
             //     this->op = LogicalOperatorType::LOGICAL_JOIN;
         }
         if(!expr["left"].empty()) {
-            l_child = new StatementAST(expr["left"]);
+            l_child = new ConditionAST(expr["left"]);
         } 
         if(!expr["right"].empty()) {
-            r_child = new StatementAST(expr["right"]);
+            r_child = new ConditionAST(expr["right"]);
         } 
     }
 
-    Statement::Statement(Json::Value &statement){
-        expr = new StatementAST(statement["expr"]);
+    Condition::Condition(Json::Value &statement){
+        expr = new ConditionAST(statement["expr"]);
 
         auto mode = statement["mode"].asString();
         if(mode.compare("sql_match") == 0) {
@@ -69,11 +69,11 @@ namespace duckdb {
     Policy::Policy(Json::Value &jsonPolicy) {
 
         for(auto &actionJson: jsonPolicy["policies"]) {
-            actions.emplace_back(make_shared<Statement>(actionJson));
+            actions.emplace_back(make_shared<Condition>(actionJson));
         }
 
         for(auto &cond: jsonPolicy["conditions"]) {
-            conditions.emplace_back(make_shared<Statement>(cond));
+            conditions.emplace_back(make_shared<Condition>(cond));
         }
 
         for(auto &action: jsonPolicy["data_actions"]) {

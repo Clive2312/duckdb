@@ -70,15 +70,15 @@ enum class PolicyType : uint8_t {
 	OTHER = 2
 };
 
-struct Policy {
+struct PPolicy {
 	string colName;
 	PolicyType policy_type;
 	ExpressionType expression_type;
-	vector<unique_ptr<Policy>> child_policies;
+	vector<unique_ptr<PPolicy>> child_policies;
 	Value val;
-	Policy(string colName, PolicyType policy_type, ExpressionType operator_type, Value &val);
-	Policy(PolicyType policy_type, ExpressionType operator_type, vector<unique_ptr<Policy>> &child_policies);
-	~Policy();
+	PPolicy(string colName, PolicyType policy_type, ExpressionType operator_type, Value &val);
+	PPolicy(PolicyType policy_type, ExpressionType operator_type, vector<unique_ptr<PPolicy>> &child_policies);
+	~PPolicy();
 };
 
 struct ParquetOptions {
@@ -111,7 +111,7 @@ public:
 	vector<string> names;
 	shared_ptr<ParquetFileMetadataCache> metadata;
 	ParquetOptions parquet_options;	
-	vector<unique_ptr<Policy>> policies;
+	vector<unique_ptr<PPolicy>> policies;
 	Json::Value user_data;
 	MultiFileReaderData reader_data;
 	bool policyChecker = false;
@@ -145,11 +145,11 @@ public:
 private:
 	void InitializeSchema();
 	void ConstructPolicies(Json::Value &json);
-	unique_ptr<Policy> ConstructConjFilter(Json::Value &filter);
-	unique_ptr<Policy> ConstructConstantFilter(Json::Value &filter);
-	unique_ptr<Policy> ConstructFilter(Json::Value &filter);
+	unique_ptr<PPolicy> ConstructConjFilter(Json::Value &filter);
+	unique_ptr<PPolicy> ConstructConstantFilter(Json::Value &filter);
+	unique_ptr<PPolicy> ConstructFilter(Json::Value &filter);
 	void PolicyViolation(DataChunk &output);
-	int ApplyPolicyFilter(vector<Vector> &v, Policy &filter, idx_t count);
+	int ApplyPolicyFilter(vector<Vector> &v, PPolicy &filter, idx_t count);
 	idx_t GetColIdx(string colName);
 	bool ScanInternal(ParquetReaderScanState &state, DataChunk &output);
 	unique_ptr<ColumnReader> CreateReader();

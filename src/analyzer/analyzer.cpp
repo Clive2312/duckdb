@@ -22,14 +22,14 @@ string GetName(Value &attrib) {
     return "";
 }
 
-bool CompareTables(StatementAST* cond, LogicalOperator &op){
+bool CompareTables(ConditionAST* cond, LogicalOperator &op){
 	if(op.type == LogicalOperatorType::LOGICAL_GET) {
 		return StringUtil::Lower(op.ParamsToString()) == GetName(cond->attribute);
 	}
 	return false;
 }
 
-bool TreeMatcher(StatementAST* cond, LogicalOperator &op){
+bool TreeMatcher(ConditionAST* cond, LogicalOperator &op){
     if(cond == nullptr) return true;
     
     if(op.type == cond->logical_op || CompareTables(cond, op)) {
@@ -65,7 +65,7 @@ bool TreeMatcher(StatementAST* cond, LogicalOperator &op){
     return false;
 }
 
-bool MatchConditions(vector<shared_ptr<Statement>> &conditions, LogicalOperator &plan){
+bool MatchConditions(vector<shared_ptr<Condition>> &conditions, LogicalOperator &plan){
     for(auto &cond: conditions) {
         if(cond->mode == CondPolicyMode::SQL_MATCH && TreeMatcher(cond->expr, plan)) return true;
     }
