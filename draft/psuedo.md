@@ -73,5 +73,69 @@ The physical plan will then take vaild_policies as args in the same function. Th
 
 <p>This can keep on evolving with time as we include more complex policies. Immediate thing that I can see is to add and/or distinction for multiple condition in a single policy.</p>
 
+## Policy enforcement framework
+### Idea
+<p> We have access to the query logical plan. A function will take this logical plan as input and an array of policy functions to apply onto the logical plan and output a modified logical plan based on the policy to enforce.</p>
+
+``` 
+logical_plan PolicyModifiedPlan (logical_plan op, Policy[] polFunctions) {
+	foreach func in polFunctions {
+		op = polFunctions.apply(op);
+	}
+	return op;
+}
+```
+<p>
+What are these policy functions? These are essentially the functions representing the policy conditions and policy actions combined. They also contain the algorithm on how to do the condition matching as well as policy enforcement in the logical plan tree.
+</p>
+
+Let's see an example:
+
+1. Our policy is <b><u>Condition:</u></b> Join on ORDERS, LINEITEM, CUSTOMER; <b><u>Action:</u></b> Can access rows with shipdate within 7 days.
+
+```
+LastestOrderPolicy extends PolicyFunction {
+	logical_plan apply(logical_plan op) {
+		if op.type == JOIN {
+			if op.r_child == SCAN and op.l_child == JOIN {
+				if tables from r_child, l_child == [ORDERS, CUSTOMER, LINEITEM] 
+				then return applyPolicy(op);
+			}
+			if op.l_child == SCAN and op.r_child == JOIN {
+				if tables from r_child, l_child == [ORDERS, CUSTOMER, LINEITEM] 
+				then return applyPolicy(op);
+			}
+		} else return apply(op.child);
+	}
+
+	logical_plan applyPolicy(logical_plan op) {
+		if(op.type == JOIN) {
+			op.outputPolicy.append(outputChecker);
+			op.inputPolicy.append(inputChecker);
+		}
+		return op;
+	}
+
+	static const outputChecker(DataChunk result) {
+		foreach data in result
+			if(data.shipdate < current_time - 7) return false;
+		return true;
+	}
+
+	static const inputChecker(DataChunk inputChunk) {
+		foreach data in result
+			if(data.shipdate < current_time - 7) return false;
+		return true;
+	}
+}
+```
+
+In this example, the logic of apply is acting as the condition matching on the logical plan tree. Policy operator can choose to do the matching based on different criteria in this function.
+
+The function applyPolicy function is actually modifying the logical_plan nodes to accomodate the policy enforcement logic. Essentially, we are adding the enforcement logic functions into the policy list that the query execution engine will use to check for policy violation.
+
+The functions outputChecker and inputChecker actually takes in the input and output chunk of the data from the operators they are added to. Then based on the return value, we can have a policy violation or not. 
+
+Note that we need to fix the signature of these checker functions which the operator has to overwrite for each PolicyFunction class. 
 
 
