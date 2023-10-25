@@ -110,7 +110,7 @@ LastestOrderPolicy extends PolicyFunction {
 
 	logical_plan applyPolicy(logical_plan op) {
 		if(op.type == JOIN) {
-			op.outputPolicy.append(outputChecker);
+			op.outputChecker.append(outputChecker);
 			op.inputChecker.append(inputChecker);
 		}
 		return op;
