@@ -91,21 +91,21 @@ What are these policy functions? These are essentially the functions representin
 
 Let's see an example:
 
-1. Our policy is <b><u>Condition:</u></b> Join on ORDERS, LINEITEM, CUSTOMER; <b><u>Action:</u></b> Can access rows with shipdate within 7 days.
+1. Our policy is <b><u>Condition:</u></b> Join on "ORDERS", "LINEITEM", "CUSTOMER"; <b><u>Action:</u></b> Can access rows with shipdate within 7 days.
 
 ```
 LastestOrderPolicy extends PolicyFunction {
-	logical_plan apply(logical_plan op) {
+	logical_plan matchCondition(logical_plan op) {
 		if op.type == JOIN {
 			if op.r_child == SCAN and op.l_child == JOIN {
-				if tables from r_child, l_child == [ORDERS, CUSTOMER, LINEITEM] 
+				if tables from r_child, l_child == ["ORDERS", "CUSTOMER", "LINEITEM"] 
 				then return applyPolicy(op);
 			}
 			if op.l_child == SCAN and op.r_child == JOIN {
-				if tables from r_child, l_child == [ORDERS, CUSTOMER, LINEITEM] 
+				if tables from r_child, l_child == ["ORDERS", "CUSTOMER", "LINEITEM"] 
 				then return applyPolicy(op);
 			}
-		} else return apply(op.child);
+		} else return matchCondition(op.child);
 	}
 
 	logical_plan applyPolicy(logical_plan op) {
@@ -149,10 +149,10 @@ Use the checker function to check for policy violations based on taints as well 
 Let us first define the semantics of our policy function:
 
 ```
-PolicyFunction {
-	getModifiedPlan() : return the modified logical plan along with the checkers and tainter functions appended to the operators.
+Class PolicyFunction {
+	getModifiedPlan() : return the modified logical plan along with the checkers and tainter functions appended to the operators by calling modifyNodes.
 
-	apply(): First checks if the condition for the policy matches the logical tree or not. If it does, modifies the logical tree to include policy enforcement logic, and/or throws an error is the policy match is just a query structure match.
+	matchCondition(): Checks if the condition for the policy matches the logical tree or not, and/or throws an error is the policy match is just a query structure match.
 	
 	/*Tree operations*/
 
@@ -168,54 +168,61 @@ PolicyFunction {
 ```
 
 Examples using these functions:
-1. Our policy is <b><u>Condition:</u></b> Join on ORDERS, LINEITEM, CUSTOMER; <b><u>Action:</u></b> Can access rows with shipdate within 7 days.
+1. Our policy is <b><u>Condition:</u></b> Join on "ORDERS", "LINEITEM", "CUSTOMER"; <b><u>Action:</u></b> Can access rows with shipdate within 7 days.
 ```
 LastestOrderPolicy extends PolicyFunction {
 	
-	private logical_plan modified_op;
+	public getModifiedPlan(logical_plan orig_op){ 
+		if(matchCondition(orig_op)) {
+			logical_plan modified_op = orig_op;
+			modifyNodes(modified_op);
+			return modified_op; 
+		}
+		return orig_op;
+	}
 
-	public getModifiedPlan(){ return modified_op; }
-
-	PolicyFunction(logical_plan orig_op): modified_op(orig_op) {};
-
-	void apply(logical_plan op) {
-		if(op == NULL) return;
+	Boolean matchCondition(logical_plan op) {
+		if(op == NULL) return false;
 
 		if op.type == JOIN {
 			if op.r_child == SCAN and op.l_child == JOIN {
-				if tables from r_child, l_child == [ORDERS, CUSTOMER, LINEITEM] 
-				then modifyNodes();
+				if tables from r_child, l_child == ["ORDERS", "CUSTOMER", "LINEITEM"] 
+				then return true;
 			}
 			if op.l_child == SCAN and op.r_child == JOIN {
-				if tables from r_child, l_child == [ORDERS, CUSTOMER, LINEITEM] 
-				then modifyNodes();
+				if tables from r_child, l_child == ["ORDERS", "CUSTOMER", "LINEITEM"] 
+				then return true;
 			}
-		} 
-		apply(op.child);
+		}
+
+		foreach child in op.children 
+			if(matchCondition(op.child)) return true;
+
+		return false;		
 	}
 
-	void modifyNodes(logical_plan op = modified_op) {
+	void modifyNodes(logical_plan op) {
 		if(op == NULL) return;
 
 		if(op.type == JOIN) {
 			if op.r_child == SCAN and op.l_child == JOIN {
-				if tables from r_child, l_child == [ORDERS, CUSTOMER, LINEITEM] 
+				if tables from r_child, l_child == ["ORDERS", "CUSTOMER", "LINEITEM"] 
 				then op.inputChecker.append(inputChecker);
 			}
 			if op.l_child == SCAN and op.r_child == JOIN {
-				if tables from r_child, l_child == [ORDERS, CUSTOMER, LINEITEM] 
+				if tables from r_child, l_child == ["ORDERS", "CUSTOMER", "LINEITEM"] 
 				then op.inputChecker.append(inputChecker);
 			}
 		}
 		
-		if(op.type == SCAN and table from child == LINEITEM) {
+		if(op.type == SCAN and table from child == "LINEITEM") {
 			then op.tainter.append(inputTainter);
 		}
 		
 		modifyNodes(op.child);
 	}
 
-	static inputChecker(DataChunk inputChunk) {
+	static Boolean inputChecker(DataChunk inputChunk) {
 		foreach data in result
 			if(data.taint_col_1) return false;
 		return true;
@@ -234,22 +241,26 @@ LastestOrderPolicy extends PolicyFunction {
 ```
 AggregatePolicy extends PolicyFunction {
 	
-	private logical_plan modified_op;
+	public getModifiedPlan(logical_plan orig_op){ 
+		if(matchCondition(orig_op)) {
+			logical_plan modified_op = orig_op;
+			modifyNodes(modified_op);
+			return modified_op; 
+		}
+		return orig_op;
+	}
 
-	public getModifiedPlan(){ return modified_op; }
-
-	PolicyFunction(logical_plan orig_op): modified_op(orig_op) {};
-
-	void apply(logical_plan op) {
-		if(op == NULL) return;
+	Boolean matchCondition(logical_plan op) {
+		if(op == NULL) return false;
 
 		if op.type == Aggregate and op.col == account_bal {
-			then modifyNodes();
-		} else apply(op.child);
+			then return true;
+		} 
+		 
+		foreach child in op.children 
+			if(matchCondition(op.child)) return true;
 
-		if op.type == Scan and op.table = CUSTOMER {
-			replaceNodes<Join>(op, new createNode<Scan>(CUSTOMER), new createNode<Scan>(REGION));
-		}
+		return false;
 	}
 
 	void modifyNodes(logical_plan op = modified_op) {
@@ -258,11 +269,14 @@ AggregatePolicy extends PolicyFunction {
 		if op.type == Aggregate and op.col == account_bal {
 			op.inputChecker.append(inputChecker);
 		}
-		
+
+		if op.type == Scan and op.table = "CUSTOMER" {
+			replaceNodes<Join>(op, new createNode<Scan>("CUSTOMER"), new createNode<Scan>(REGION));
+		}
 		modifyNodes(op.child);
 	}
 
-	static inputChecker(DataChunk inputChunk) {
+	static Boolean inputChecker(DataChunk inputChunk) {
 		if count(data.region, distinct = true) > 1 return false;
 
 		return true;
@@ -274,20 +288,26 @@ AggregatePolicy extends PolicyFunction {
 ```
 LikeOperatorPolicy extends PolicyFunction {
 	
-	private logical_plan modified_op;
+	public getModifiedPlan(logical_plan orig_op){ 
+		if(matchCondition(orig_op)) {
+			logical_plan modified_op = orig_op;
+			modifyNodes(modified_op);
+			return modified_op; 
+		}
+		return orig_op;
+	}
 
-	public getModifiedPlan(){ return modified_op; }
-
-	PolicyFunction(logical_plan orig_op): modified_op(orig_op) {};
-
-	void apply(logical_plan op) {
-		if(op == NULL) return;
+	Boolean matchCondition(logical_plan op) {
+		if(op == NULL) return false;
 
 		if op.type == Like and op.parent == NULL {
 			then Throw(PolicyViolationError: "Policy Violated");
 		}
 
-		apply(op.child);
+		foreach child in op.children 
+			if(matchCondition(op.child)) return true;
+
+		return false;
 	}
 }
 ```
@@ -295,18 +315,25 @@ LikeOperatorPolicy extends PolicyFunction {
 ```
 MinAggregatePolicy extends PolicyFunction {
 	
-	private logical_plan modified_op;
+	public getModifiedPlan(logical_plan orig_op){ 
+		if(matchCondition(orig_op)) {
+			logical_plan modified_op = orig_op;
+			modifyNodes(modified_op);
+			return modified_op; 
+		}
+		return orig_op;
+	}
 
-	public getModifiedPlan(){ return modified_op; }
-
-	PolicyFunction(logical_plan orig_op): modified_op(orig_op) {};
-
-	void apply(logical_plan op) {
-		if(op == NULL) return;
+	Boolean matchCondition(logical_plan op) {
+		if(op == NULL) return false;
 
 		if op.type == AGGREGATE and op.col == SUPPLIET.ACC_BAL 
-		then modifyNodes(modified_op); 
-		apply(op.child);
+		then return true; 
+
+		foreach child in op.children 
+			if(matchCondition(op.child)) return true;
+		
+		return false;
 	}
 
 	void modifyNodes(logical_plan op = modified_op) {
@@ -318,7 +345,7 @@ MinAggregatePolicy extends PolicyFunction {
 		modifyNodes(op.child);
 	}
 
-	static outputChecker(DataChunk res) {
+	static Boolean outputChecker(DataChunk res) {
 		if(res.val < 100) return false;
 		return true;
 	}
@@ -329,18 +356,25 @@ MinAggregatePolicy extends PolicyFunction {
 ```
 MinGroupbyPolicy extends PolicyFunction {
 	
-	private logical_plan modified_op;
+	public getModifiedPlan(logical_plan orig_op){ 
+		if(matchCondition(orig_op)) {
+			logical_plan modified_op = orig_op;
+			modifyNodes(modified_op);
+			return modified_op; 
+		}
+		return orig_op;
+	}
 
-	public getModifiedPlan(){ return modified_op; }
-
-	PolicyFunction(logical_plan orig_op): modified_op(orig_op) {};
-
-	void apply(logical_plan op) {
-		if(op == NULL) return;
+	Boolean matchCondition(logical_plan op) {
+		if(op == NULL) return false;
 
 		if op.type == GROUP BY and op.col == EMPLOYEE.ZIPCODE
-		then modifyNodes(modified_op); 
-		apply(op.child);
+		then return true; 
+
+		foreach child in op.children 
+			if(matchCondition(op.child)) return true;
+		
+		return false;
 	}
 
 	void modifyNodes(logical_plan op = modified_op) {
@@ -352,7 +386,7 @@ MinGroupbyPolicy extends PolicyFunction {
 		modifyNodes(op.child);
 	}
 
-	static outputChecker(DataChunk res) {
+	static Boolean outputChecker(DataChunk res) {
 		foreach group in res{
 			if(count(group.rows) < 20) return false;
 		}
