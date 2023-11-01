@@ -419,7 +419,7 @@ The current execution model assumption is as follows:
 
 For part 1, checker functions may require a single data or multiple/full data. 
 
-When the checker function needs full data before performing any action on the query, the query will wait at immediate next sink in the logical tree before releasing it's data. If all the checker functions returns true, the sink operator further releases the data, otherwise the checker operator throws an error appropriately. (We can also wait at the last sink operator instead of waiting at multiple sink operators. This will reduce the implementation complexity but might result into better performance overall). 
+When the checker function needs full data before performing any action on the query, the query will wait at immediate next sink in the logical tree before releasing it's data. If all the checker functions returns true, the sink operator further releases the data, otherwise the checker operator throws an error appropriately. (We can also wait at the last sink operator instead of waiting at multiple sink operators. This will reduce the implementation complexity but might result into worse performance overall). 
 
 Now, we need to maintain states for each checker function. One proposed model to handle states here:
 
@@ -436,7 +436,7 @@ Struct StateVar {
 	Value value; // The value of the state var. Value can be string, bool, int etc.
 
 	Value Collector(DataChunk, value); // how to collect the value from the datachunk of the query result 
-	Value Combiner(StateVar[]); // how to combine the values from multiple datachunk into one result
+	Value Combiner(StateVar[]); // how to combine the values from multiple local states into one result
 }
 ```
 Let us look at one example:
@@ -483,7 +483,7 @@ AggregatePolicy extends PolicyFunction {
 	}
 
 	int collector(DataChunk result, int value) {
-		return value + result;
+		return value + result.size();
 	}
 	
 	int combiner(int[] values){
