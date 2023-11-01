@@ -80,7 +80,7 @@ The physical plan will then take vaild_policies as args in the same function. Th
 ``` 
 logical_plan PolicyModifiedPlan (logical_plan op, Policy[] polFunctions) {
 	foreach func in polFunctions {
-		op = polFunctions.apply(op);
+		op = polFunctions.matchCondition(op);
 	}
 	return op;
 }
@@ -408,4 +408,97 @@ The problem then reduces to converting all the operators which uses policy check
 
 2. The other approach would be instead of adding the checker function into the existing operators, create a custom operator which is always a pipeline breaker. We can then use the same approach as in Step 1 to manage the parallel execution in that custom operator, or we can use some other synchronization methods according to our needs in the custom operator.
 
+## Updates after 10/25
+
+### Execution model
+
+The current execution model assumption is as follows:
+
+1. Checker functions requires a set of data for policy checking.
+2. Checker functions can take certain actions on that data. 
+
+For part 1, checker functions may require a single data or multiple/full data. 
+
+When the checker function needs full data before performing any action on the query, the query will wait at immediate next sink in the logical tree before releasing it's data. If all the checker functions returns true, the sink operator further releases the data, otherwise the checker operator throws an error appropriately. (We can also wait at the last sink operator instead of waiting at multiple sink operators. This will reduce the implementation complexity but might result into better performance overall). 
+
+Now, we need to maintain states for each checker function. One proposed model to handle states here:
+
+- Each parallel execution of operators will run their own thread local state collection
+- Each state collection function will collect local state information
+- Propagate the local state information along with the query result data to parent operators
+- The immediate sink operator (where the query is waiting for policy validation) will then combine the states from the local informations. 
+- The final states will then be used for policy validation checking
+
+Policy operator will define how to collect and combine the states in the policy definitions. One of the possible semantics:
+```
+Struct StateVar {
+	string name; // name of the state variable
+	Value value; // The value of the state var. Value can be string, bool, int etc.
+
+	Value Collector(DataChunk, value); // how to collect the value from the datachunk of the query result 
+	Value Combiner(StateVar[]); // how to combine the values from multiple datachunk into one result
+}
+```
+Let us look at one example:
+
+Our policy is <b><u>Condition:</u></b> If we have an aggregate on account_bal of Customer table; <b><u>Action:</u></b> Rows cannot include data from multiple regions.
+```
+AggregatePolicy extends PolicyFunction {
+	
+	public getModifiedPlan(logical_plan orig_op){ 
+		if(matchCondition(orig_op)) {
+			logical_plan modified_op = orig_op;
+			modifyNodes(modified_op);
+			return modified_op; 
+		}
+		return orig_op;
+	}
+
+	Boolean matchCondition(logical_plan op) {
+		if(op == NULL) return false;
+
+		if op.type == Aggregate and op.col == account_bal {
+			then return true;
+		} 
+		 
+		foreach child in op.children 
+			if(matchCondition(op.child)) return true;
+
+		return false;
+	}
+
+	void modifyNodes(logical_plan op = modified_op) {
+		if(op == NULL) return;
+
+		if op.type == Aggregate and op.col == account_bal {
+			State count_state = State("count_rows", (int)0, collector, combiner);
+			op.states.append(count_state);
+			op.inputChecker.append(inputChecker);
+		}
+
+		if op.type == Scan and op.table = "CUSTOMER" {
+			replaceNodes<Join>(op, new createNode<Scan>("CUSTOMER"), new createNode<Scan>(REGION));
+		}
+		modifyNodes(op.child);
+	}
+
+	int collector(DataChunk result, int value) {
+		return value + result;
+	}
+	
+	int combiner(int[] values){
+		int res = 0;
+		foreach val in values:
+			res += val;
+		return res;
+	}
+
+	boolean inputChecker(DataChunk inputChunk, State[] states) {
+		int count = states.find("count_rows").value;
+		if count > 1 return false;
+
+		return true;
+	}
+}
+```
 
