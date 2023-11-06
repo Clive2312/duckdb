@@ -339,19 +339,18 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 
 	if(config.enable_policy_checker) {
 		profiler.StartPhase("policy_checker");
-		Value policyfile;
-		ClientContext::TryGetCurrentSetting("policy_file", policyfile);
-		// policyfile.Print();
+		// Value policyfile;
+		// ClientContext::TryGetCurrentSetting("policy_file", policyfile);
 
-		if (!policyfile.IsNull()) {
-			std::ifstream handle(policyfile.ToString());
-			Json::Reader reader;
-			Json::Value completeJson;
-			reader.parse(handle, completeJson);
-			Analyzer analyzer(completeJson);
-			plan = analyzer.MatchAndInsertPolicies(std::move(plan));
-			plan->Print();
-		}
+		// if (!policyfile.IsNull()) {
+		// 	std::ifstream handle(policyfile.ToString());
+		// 	Json::Reader reader;
+		// 	Json::Value completeJson;
+		// 	reader.parse(handle, completeJson);
+		// 	Analyzer analyzer(completeJson);
+		// 	plan = analyzer.MatchAndInsertPolicies(std::move(plan));
+		// 	plan->Print();
+		// }
 		profiler.EndPhase();
 	}
 

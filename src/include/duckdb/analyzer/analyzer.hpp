@@ -25,8 +25,7 @@ public:
 	vector<shared_ptr<Policy>> policies;
 
 public:
-	Analyzer(Json::Value &policies_json);
-
+	// Analyzer(Json::Value &policies_json);
 	void VisitOperator(LogicalOperator &op);
 	unique_ptr<LogicalOperator> MatchAndInsertPolicies(unique_ptr<LogicalOperator> plan);
 

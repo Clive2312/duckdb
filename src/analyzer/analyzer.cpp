@@ -3,11 +3,15 @@
 // #include "duckdb/planner/operator/logical_comparison_join.hpp"
 
 namespace duckdb {
-Analyzer::Analyzer(Json::Value &policies_json){
-    for(auto &policy: policies_json) {
-        policies.emplace_back(make_shared<Policy>(policy));
     }
 }
+
+
+// Analyzer::Analyzer(Json::Value &policies_json){
+//     for(auto &policy: policies_json) {
+//         policies.emplace_back(make_shared<Policy>(policy));
+//     }
+// }
 
 string GetName(Value &attrib) {
     string val = attrib.ToString();
