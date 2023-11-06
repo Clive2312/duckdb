@@ -8,7 +8,7 @@ Analyzer::Analyzer(){
     policyFunctions.emplace_back(make_shared<AccountRangePolicy>());
 }
 
-unique_ptr<LogicalOperator> Analyzer::getModifiedPlan(unique_ptr<LogicalOperator> op) {
+unique_ptr<LogicalOperator> Analyzer::modifiedPlan(unique_ptr<LogicalOperator> op) {
     for(auto &policy: policyFunctions) {
         op = policy->getModifiedPlan(std::move(op));
     }

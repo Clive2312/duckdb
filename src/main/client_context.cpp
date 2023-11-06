@@ -340,7 +340,7 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 	if(config.enable_policy_checker) {
 		profiler.StartPhase("policy_checker");
 		Analyzer analyzer;
-		plan = analyzer.getModifiedPlan(std::move(plan));
+		plan = analyzer.modifiedPlan(std::move(plan));
 		// Value policyfile;
 		// ClientContext::TryGetCurrentSetting("policy_file", policyfile);
 

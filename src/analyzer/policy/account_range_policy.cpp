@@ -3,7 +3,7 @@
 namespace duckdb {
 AccountRangePolicy::AccountRangePolicy(): PolicyFunction(){}
 
-unique_ptr<LogicalOperator> modifyPlan(unique_ptr<LogicalOperator> op) {
+unique_ptr<LogicalOperator> AccountRangePolicy::modifyPlan(unique_ptr<LogicalOperator> op) {
     if(op->type == LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY) {
         op->inputCheckers.emplace_back(PolicyFunction::inputChecker);
     }
@@ -27,7 +27,11 @@ bool inputChecker(DataChunk &input) {
     return true;
 }
 
-unique_ptr<LogicalOperator> PolicyFunction::getModifiedPlan(unique_ptr<LogicalOperator> plan) {
+bool AccountRangePolicy::matchCondition(LogicalOperator &plan) {
+    return true;
+}
+
+unique_ptr<LogicalOperator> AccountRangePolicy::getModifiedPlan(unique_ptr<LogicalOperator> plan) {
     if(matchCondition(*plan)) {
         return modifyPlan(std::move(plan));
     }

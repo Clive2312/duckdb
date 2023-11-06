@@ -18,6 +18,7 @@
 #include "duckdb/analyzer/policy.hpp"
 #include "duckdb/planner/plan_serialization.hpp"
 #include "duckdb/common/types/data_chunk.hpp"
+#include "duckdb/analyzer/policy_function.hpp"
 
 #include <algorithm>
 #include <functional>
