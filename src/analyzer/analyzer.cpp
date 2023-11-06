@@ -1,9 +1,18 @@
 #include "duckdb/analyzer/policy.hpp"
 #include "duckdb/analyzer/analyzer.hpp"
+// #include "duckdb/analyzer/policy/account_range_policy.hpp"
 // #include "duckdb/planner/operator/logical_comparison_join.hpp"
 
 namespace duckdb {
+Analyzer::Analyzer(){
+    policyFunctions.emplace_back(make_shared<AccountRangePolicy>());
+}
+
+unique_ptr<LogicalOperator> Analyzer::getModifiedPlan(unique_ptr<LogicalOperator> op) {
+    for(auto &policy: policyFunctions) {
+        op = policy->getModifiedPlan(std::move(op));
     }
+    return std::move(op);
 }
 
 

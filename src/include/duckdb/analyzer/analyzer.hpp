@@ -14,6 +14,8 @@
 #include "duckdb/common/json/json.h"
 #include "duckdb/common/types/vector.hpp"
 #include "duckdb/common/unordered_map.hpp"
+#include "duckdb/analyzer/policy/account_range_policy.hpp"
+// #include "duckdb/analyzer/policy_function.hpp"
 
 #include <iostream>
 #include <functional>
@@ -23,9 +25,12 @@ namespace duckdb {
 class Analyzer {
 public:
 	vector<shared_ptr<Policy>> policies;
+	vector<shared_ptr<PolicyFunction>> policyFunctions;
 
 public:
+	Analyzer();
 	// Analyzer(Json::Value &policies_json);
+	unique_ptr<LogicalOperator> getModifiedPlan(unique_ptr<LogicalOperator> op);
 	void VisitOperator(LogicalOperator &op);
 	unique_ptr<LogicalOperator> MatchAndInsertPolicies(unique_ptr<LogicalOperator> plan);
 
