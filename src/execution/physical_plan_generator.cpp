@@ -9,7 +9,7 @@
 #include "duckdb/planner/expression/bound_function_expression.hpp"
 #include "duckdb/planner/operator/logical_extension_operator.hpp"
 #include "duckdb/planner/operator/list.hpp"
-
+#include <iostream>
 namespace duckdb {
 
 class DependencyExtractor : public LogicalOperatorVisitor {
@@ -82,6 +82,7 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalOperator &
 		break;
 	case LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY:
 		plan = CreatePlan(op.Cast<LogicalAggregate>());
+		std::cout<<"Input checker size in Aggregate: "<<plan->inputCheckers.size()<<'\n';
 		break;
 	case LogicalOperatorType::LOGICAL_WINDOW:
 		plan = CreatePlan(op.Cast<LogicalWindow>());

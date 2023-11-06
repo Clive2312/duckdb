@@ -159,6 +159,7 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalAggregate 
 	}
 	groupby->children.push_back(std::move(plan));
 	groupby->actions = op.actions;
+	groupby->inputCheckers = op.inputCheckers;
 	return groupby;
 }
 

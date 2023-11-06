@@ -17,6 +17,7 @@
 #include "duckdb/planner/logical_operator_visitor.hpp"
 #include "duckdb/analyzer/policy.hpp"
 #include "duckdb/planner/plan_serialization.hpp"
+#include "duckdb/common/types/data_chunk.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -51,6 +52,7 @@ public:
 	bool has_estimated_cardinality;
 	//! Policies to check
 	vector<shared_ptr<Action>> actions;
+	vector<std::function<bool(DataChunk &)>> inputCheckers;
 	unique_ptr<EstimatedProperties> estimated_props;
 
 public:

@@ -18,6 +18,7 @@
 #include "duckdb/common/optional_idx.hpp"
 #include "duckdb/execution/physical_operator_states.hpp"
 #include "duckdb/common/enums/order_preservation_type.hpp"
+#include "duckdb/analyzer/policy.hpp"
 
 namespace duckdb {
 class Event;
@@ -58,6 +59,8 @@ public:
 	unique_ptr<GlobalOperatorState> op_state;
 	//! Policies to check
 	vector<shared_ptr<Action>> actions;
+	vector<std::function<bool(DataChunk&)>> inputCheckers;
+
 	//! Lock for (re)setting any of the operator states
 	mutex lock;
 
