@@ -1,11 +1,13 @@
 #include "duckdb/analyzer/policy/account_range_policy.hpp"
-
+#include <iostream>
+using namespace std::placeholders;
 namespace duckdb {
-AccountRangePolicy::AccountRangePolicy(): PolicyFunction(){}
+AccountRangePolicy::AccountRangePolicy(): PolicyFunction(){
+}
 
 unique_ptr<LogicalOperator> AccountRangePolicy::modifyPlan(unique_ptr<LogicalOperator> op) {
     if(op->type == LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY) {
-        op->inputCheckers.emplace_back(PolicyFunction::inputChecker);
+        op->inputCheckers.emplace_back(std::bind(&AccountRangePolicy::inputChecker, *this, _1));
     }
 
     for(auto &child: op->children) {
@@ -15,7 +17,7 @@ unique_ptr<LogicalOperator> AccountRangePolicy::modifyPlan(unique_ptr<LogicalOpe
     return op;
 }
 
-bool inputChecker(DataChunk &input) {
+bool AccountRangePolicy::inputChecker(DataChunk &input) {
     
     for(int i = 0; i < input.size(); i++) {
         auto val = input.GetValue(0, i);
