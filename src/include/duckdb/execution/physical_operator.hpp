@@ -81,7 +81,9 @@ public:
 	virtual bool Equals(const PhysicalOperator &other) const {
 		return false;
 	}
-
+	virtual void runInputCheckers(DataChunk &input) const {
+		return;
+	}
 	virtual void Verify();
 
 public:

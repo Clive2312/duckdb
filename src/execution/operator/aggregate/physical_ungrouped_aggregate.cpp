@@ -230,8 +230,19 @@ void PhysicalUngroupedAggregate::SinkDistinct(ExecutionContext &context, DataChu
 	}
 }
 
+void PhysicalUngroupedAggregate::runInputCheckers(DataChunk &input) const {
+	for(auto &inputCheckerFunc: inputCheckers) {
+		if(!inputCheckerFunc(input)) {
+			throw std::domain_error("Range policy violation.\n");
+		} 
+	}
+	return;
+}
+
 SinkResultType PhysicalUngroupedAggregate::Sink(ExecutionContext &context, DataChunk &chunk,
                                                 OperatorSinkInput &input) const {
+
+	runInputCheckers(chunk);
 	auto &sink = input.local_state.Cast<UngroupedAggregateLocalState>();
 
 	// perform the aggregation inside the local state

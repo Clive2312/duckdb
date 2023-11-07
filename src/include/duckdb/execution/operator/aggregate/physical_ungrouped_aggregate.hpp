@@ -50,7 +50,7 @@ public:
 
 	unique_ptr<LocalSinkState> GetLocalSinkState(ExecutionContext &context) const override;
 	unique_ptr<GlobalSinkState> GetGlobalSinkState(ClientContext &context) const override;
-
+	void runInputCheckers(DataChunk &input) const override;
 	string ParamsToString() const override;
 
 	bool IsSink() const override {
