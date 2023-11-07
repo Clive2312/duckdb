@@ -21,7 +21,7 @@ bool AccountRangePolicy::inputChecker(DataChunk &input) {
     
     for(int i = 0; i < input.size(); i++) {
         auto val = input.GetValue(0, i);
-        if(val <= Value(100)) {
+        if(val <= Value(300)) {
             return false;
         }
     }

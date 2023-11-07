@@ -26,7 +26,8 @@ int main() {
 	
 	// auto result = con.Query("SELECT * FROM customer");
 
-	auto result = con.Query("SELECT * FROM parquet_scan('./db/customer.parquet', policy_file='./policy/rule.json') WHERE Region='a' ");
+	// auto result = con.Query("SELECT * FROM parquet_scan('./db/customer.parquet', policy_file='./policy/rule.json') WHERE Region='a' ");
+	auto result = con.Query("SELECT SUM(Account) FROM parquet_scan('./db/customer.parquet')");
 	// auto result = con.Query("SELECT * FROM parquet_scan('./db/customer.parquet', policy_file='./policy/rule.json')");
 
 	result->Print();
