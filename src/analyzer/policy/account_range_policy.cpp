@@ -29,8 +29,18 @@ bool AccountRangePolicy::inputChecker(DataChunk &input) {
     return true;
 }
 
-bool AccountRangePolicy::matchCondition(LogicalOperator &plan) {
-    return true;
+bool AccountRangePolicy::matchCondition(LogicalOperator &op) {
+    if(op.type == LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY) {
+        return true;    
+    }
+    bool match = false;
+    for(auto &child: op.children) {
+        match = match || matchCondition(*child);
+        if(match) {
+            return true;
+        }
+    }
+    return false;
 }
 
 unique_ptr<LogicalOperator> AccountRangePolicy::getModifiedPlan(unique_ptr<LogicalOperator> plan) {
