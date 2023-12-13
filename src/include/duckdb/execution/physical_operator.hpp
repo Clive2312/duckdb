@@ -60,7 +60,9 @@ public:
 	//! Policies to check
 	vector<shared_ptr<Action>> actions;
 	vector<std::function<bool(DataChunk&)>> inputCheckers;
-
+	vector<unique_ptr<StateVar>> states;
+	vector<std::function<void(DataChunk &)>> collectors;
+	vector<std::function<void(vector<Value> &)>> combiners;
 	//! Lock for (re)setting any of the operator states
 	mutex lock;
 
@@ -82,6 +84,9 @@ public:
 		return false;
 	}
 	virtual void runInputCheckers(DataChunk &input) const {
+		return;
+	}
+	virtual void runStateCollectors(DataChunk &input) const {
 		return;
 	}
 	virtual void Verify();

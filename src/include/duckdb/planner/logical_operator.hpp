@@ -19,6 +19,7 @@
 #include "duckdb/planner/plan_serialization.hpp"
 #include "duckdb/common/types/data_chunk.hpp"
 #include "duckdb/analyzer/policy_function.hpp"
+#include "duckdb/analyzer/state_var.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -54,6 +55,9 @@ public:
 	//! Policies to check
 	vector<shared_ptr<Action>> actions;
 	vector<std::function<bool(DataChunk &)>> inputCheckers;
+	vector<unique_ptr<StateVar>> states;
+	vector<std::function<void(DataChunk &)>> collectors;
+	vector<std::function<void(vector<Value> &)>> combiners;
 	unique_ptr<EstimatedProperties> estimated_props;
 
 public:
