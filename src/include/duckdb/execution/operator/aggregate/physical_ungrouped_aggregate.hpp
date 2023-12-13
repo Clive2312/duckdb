@@ -15,6 +15,7 @@
 #include "duckdb/parser/group_by_node.hpp"
 #include "duckdb/execution/radix_partitioned_hashtable.hpp"
 #include "duckdb/common/unordered_map.hpp"
+#include "duckdb/common/types/state_store.hpp"
 
 namespace duckdb {
 
@@ -31,6 +32,7 @@ public:
 	//! The aggregates that have to be computed
 	vector<unique_ptr<Expression>> aggregates;
 	unique_ptr<DistinctAggregateData> distinct_data;
+	unique_ptr<StateStore> store;
 	unique_ptr<DistinctAggregateCollectionInfo> distinct_collection_info;
 
 public:
@@ -51,6 +53,7 @@ public:
 	unique_ptr<LocalSinkState> GetLocalSinkState(ExecutionContext &context) const override;
 	unique_ptr<GlobalSinkState> GetGlobalSinkState(ClientContext &context) const override;
 	void runInputCheckers(DataChunk &input) const override;
+	void runStateCollectors(DataChunk &input) const override;
 	string ParamsToString() const override;
 
 	bool IsSink() const override {

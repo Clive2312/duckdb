@@ -66,6 +66,7 @@ struct AggregateState {
 	void Move(AggregateState &other) {
 		other.aggregates = std::move(aggregates);
 		other.destructors = std::move(destructors);
+		other.store = std::move(store);
 	}
 
 	//! The aggregate values
@@ -76,6 +77,8 @@ struct AggregateState {
 	vector<aggregate_destructor_t> destructors;
 	//! Counts (used for verification)
 	vector<idx_t> counts;
+	//! Stores the metric states
+	unique_ptr<StateStore> store;
 };
 
 class UngroupedAggregateGlobalState : public GlobalSinkState {
@@ -239,10 +242,19 @@ void PhysicalUngroupedAggregate::runInputCheckers(DataChunk &input) const {
 	return;
 }
 
+void PhysicalUngroupedAggregate::runStateCollectors(DataChunk &input) const {
+	for(auto &collector: collectors) {
+		collector(input);
+	}
+	return;
+}
+
 SinkResultType PhysicalUngroupedAggregate::Sink(ExecutionContext &context, DataChunk &chunk,
                                                 OperatorSinkInput &input) const {
 
 	runInputCheckers(chunk);
+	runStateCollectors(chunk);
+	store->Move(std::move(chunk.store));
 	auto &sink = input.local_state.Cast<UngroupedAggregateLocalState>();
 
 	// perform the aggregation inside the local state
