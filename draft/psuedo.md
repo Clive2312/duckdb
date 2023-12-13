@@ -444,7 +444,7 @@ Let us look at one example:
 Our policy is <b><u>Condition:</u></b> If we have an aggregate on account_bal of Customer table; <b><u>Action:</u></b> Rows cannot include data from multiple regions.
 ```
 AggregatePolicy extends PolicyFunction {
-	
+	vector<state> {s1, s2, s3}; // assume
 	public getModifiedPlan(logical_plan orig_op){ 
 		if(matchCondition(orig_op)) {
 			logical_plan modified_op = orig_op;
@@ -491,6 +491,10 @@ AggregatePolicy extends PolicyFunction {
 		foreach val in values:
 			res += val;
 		return res;
+	}
+
+	void initState(State name) {
+		
 	}
 
 	boolean inputChecker(DataChunk inputChunk, State[] states) {
