@@ -21,6 +21,7 @@ add_library_unity(
   decimal.cpp
   hash.cpp
   hugeint.cpp
+  state_store.cpp
   uuid.cpp
   hyperloglog.cpp
   interval.cpp
