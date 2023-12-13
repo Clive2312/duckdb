@@ -22,7 +22,7 @@
 
 namespace duckdb {
 
-DataChunk::DataChunk() : count(0), capacity(STANDARD_VECTOR_SIZE) {
+DataChunk::DataChunk() : count(0), capacity(STANDARD_VECTOR_SIZE), store(make_uniq<StateStore>()) {
 }
 
 DataChunk::~DataChunk() {
@@ -119,6 +119,7 @@ void DataChunk::Move(DataChunk &chunk) {
 	SetCapacity(chunk);
 	data = std::move(chunk.data);
 	vector_caches = std::move(chunk.vector_caches);
+	store->MergeStore(*chunk.store);
 
 	chunk.Destroy();
 }
@@ -170,6 +171,7 @@ void DataChunk::Fuse(DataChunk &other) {
 		data.emplace_back(std::move(other.data[col_idx]));
 		vector_caches.emplace_back(std::move(other.vector_caches[col_idx]));
 	}
+	store->MergeStore(*other.store);
 	other.Destroy();
 }
 

@@ -12,6 +12,7 @@
 #include "duckdb/common/arrow/arrow_wrapper.hpp"
 #include "duckdb/common/common.hpp"
 #include "duckdb/common/types/vector.hpp"
+#include "duckdb/common/types/state_store.hpp"
 #include "duckdb/common/winapi.hpp"
 
 struct ArrowArray;
@@ -48,6 +49,7 @@ public:
 
 	//! The vectors owned by the DataChunk.
 	vector<Vector> data;
+	unique_ptr<StateStore> store;
 
 public:
 	inline idx_t size() const { // NOLINT
