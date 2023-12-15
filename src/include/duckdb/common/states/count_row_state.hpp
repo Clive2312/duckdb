@@ -7,7 +7,7 @@
 //===----------------------------------------------------------------------===//
 #pragma once
 
-#include "duckdb/analyzer/state_var.hpp"
+#include "duckdb/common/state_var.hpp"
 
 namespace duckdb {
 

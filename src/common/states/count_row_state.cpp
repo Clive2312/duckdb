@@ -1,4 +1,4 @@
-#include "duckdb/analyzer/states/count_row_state.hpp"
+#include "duckdb/common/states/count_row_state.hpp"
 #include <iostream>
 using namespace std::placeholders;
 namespace duckdb {
