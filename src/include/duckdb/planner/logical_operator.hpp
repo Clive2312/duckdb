@@ -28,7 +28,7 @@ namespace duckdb {
 
 class FieldWriter;
 class FieldReader;
-
+class StateVar;
 //! The current version of the plan serialization format. Exposed via by @Serializer & @Deserializer
 //! to be used by various Operator to know what format to read and write.
 extern const uint64_t PLAN_SERIALIZATION_VERSION;
