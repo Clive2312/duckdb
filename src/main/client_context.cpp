@@ -341,6 +341,8 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 		profiler.StartPhase("policy_checker");
 		Analyzer analyzer;
 		plan = analyzer.modifiedPlan(std::move(plan));
+		plan->Print();
+
 		// Value policyfile;
 		// ClientContext::TryGetCurrentSetting("policy_file", policyfile);
 
@@ -351,7 +353,7 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 		// 	reader.parse(handle, completeJson);
 		// 	Analyzer analyzer(completeJson);
 		// 	plan = analyzer.MatchAndInsertPolicies(std::move(plan));
-		// 	plan->Print();
+			// plan->Print();
 		// }
 		profiler.EndPhase();
 	}
