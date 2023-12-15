@@ -10,6 +10,7 @@ add_subdirectory(progress_bar)
 add_subdirectory(row_operations)
 add_subdirectory(serializer)
 add_subdirectory(sort)
+add_subdirectory(states)
 add_subdirectory(types)
 add_subdirectory(value_operations)
 add_subdirectory(vector_operations)
@@ -51,6 +52,7 @@ add_library_unity(
   string_util.cpp
   enum_util.cpp
   symbols.cpp
+  state_var.cpp
   tree_renderer.cpp
   types.cpp
   virtual_file_system.cpp
