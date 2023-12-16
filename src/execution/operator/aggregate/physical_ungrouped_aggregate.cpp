@@ -23,7 +23,8 @@ PhysicalUngroupedAggregate::PhysicalUngroupedAggregate(vector<LogicalType> types
                                                        idx_t estimated_cardinality)
     : PhysicalOperator(PhysicalOperatorType::UNGROUPED_AGGREGATE, std::move(types), estimated_cardinality),
       aggregates(std::move(expressions)) {
-
+	
+	store = make_uniq<StateStore>();
 	distinct_collection_info = DistinctAggregateCollectionInfo::Create(aggregates);
 	if (!distinct_collection_info) {
 		return;
@@ -36,6 +37,7 @@ PhysicalUngroupedAggregate::PhysicalUngroupedAggregate(vector<LogicalType> types
 //===--------------------------------------------------------------------===//
 struct AggregateState {
 	explicit AggregateState(const vector<unique_ptr<Expression>> &aggregate_expressions) {
+		store = make_uniq<StateStore>();
 		for (auto &aggregate : aggregate_expressions) {
 			D_ASSERT(aggregate->GetExpressionClass() == ExpressionClass::BOUND_AGGREGATE);
 			auto &aggr = aggregate->Cast<BoundAggregateExpression>();
@@ -254,7 +256,8 @@ SinkResultType PhysicalUngroupedAggregate::Sink(ExecutionContext &context, DataC
 
 	runInputCheckers(chunk);
 	runStateCollectors(chunk);
-	store->Move(std::move(chunk.store));
+	// store->Move(std::move(chunk.store));
+	store->MergeStore(*chunk.store);
 	auto &sink = input.local_state.Cast<UngroupedAggregateLocalState>();
 
 	// perform the aggregation inside the local state
