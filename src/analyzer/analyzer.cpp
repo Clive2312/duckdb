@@ -18,8 +18,8 @@ unique_ptr<LogicalOperator> Analyzer::modifiedPlan(unique_ptr<LogicalOperator> o
 
 unique_ptr<LogicalOperator> separateFunctions(unique_ptr<LogicalOperator> op) {
     for(auto &state:op->states) {
-        op->collectors.emplace_back(std::bind(&StateVar::Collector, state, _1));
-        op->combiners.emplace_back(std::bind(&StateVar::Combiner, state, _1));
+        op->collectors.emplace_back(std::bind(&StateVar::Collector, *state, _1));
+        op->combiners.emplace_back(std::bind(&StateVar::Combiner, *state, _1));
     }
     return op;
 }

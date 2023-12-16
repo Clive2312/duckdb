@@ -27,11 +27,14 @@ unique_ptr<LogicalOperator> AccountRangePolicy::modifyPlan(unique_ptr<LogicalOpe
 
 bool AccountRangePolicy::inputChecker(DataChunk &data) {
     
-    for(int i = 0; i < input.size(); i++) { // TODO: 1. We need to abstract how the operator is working on the table data
-        auto val = input.GetValue(0, i); // assume operator knows the catalog and schema
-        if(val <= Value(300)) {
-            return false;
-        }
+    // for(int i = 0; i < input.size(); i++) { // TODO: 1. We need to abstract how the operator is working on the table data
+    //     auto val = input.GetValue(0, i); // assume operator knows the catalog and schema
+    //     if(val <= Value(300)) {
+    //         return false;
+    //     }
+    // }
+    if(data.store->GetStateValue(1) > 1) {
+        return false;
     }
     
     return true;
