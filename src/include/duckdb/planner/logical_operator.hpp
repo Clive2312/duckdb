@@ -55,7 +55,7 @@ public:
 	//! Policies to check
 	vector<shared_ptr<Action>> actions;
 	vector<std::function<bool(DataChunk &)>> inputCheckers;
-	vector<unique_ptr<StateVar>> states;
+	vector<StateVar*> states;
 	vector<std::function<void(DataChunk &)>> collectors;
 	vector<std::function<void(vector<Value> &)>> combiners;
 	unique_ptr<EstimatedProperties> estimated_props;
