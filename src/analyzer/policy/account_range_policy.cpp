@@ -15,7 +15,10 @@ unique_ptr<LogicalOperator> AccountRangePolicy::modifyPlan(unique_ptr<LogicalOpe
         LogicalAggregate &temp = op->Cast<LogicalAggregate>(); // TODO: abstract the type of the operator based on duckdb implementation
         // std::cout<<"Inserting range policy "<<temp.group_index<<"##"<<temp.aggregate_index<<"##"<<temp.groups[0]->ToString()<<"\n";
         op->inputCheckers.emplace_back(std::bind(&AccountRangePolicy::inputChecker, *this, _1));
-        op->states.emplace_back(make_uniq<CountRowState>(1, Value(0)));
+        CountRowState *obj = new CountRowState(1, Value(0));
+        op->combiners.emplace_back(std::bind(&CountRowState::Combiner, obj, _1));
+        op->collectors.emplace_back(std::bind(&CountRowState::Collector, obj, _1));
+        std::cout<<"Here3\n";
     }
 
     for(auto &child: op->children) {
