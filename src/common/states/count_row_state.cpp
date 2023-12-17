@@ -9,8 +9,8 @@ CountRowState::CountRowState(int id, Value val): StateVar(id, val){
 }
 
 void CountRowState::Collector(DataChunk &data) {
-    auto intval = val.template GetValue<int>();
-    val = Value(intval + (int)data.size());
+    auto val = Value((int)data.size());
+    data.store->SetStateValue(id, val);
 }
 
 void CountRowState::Combiner(vector<Value> &local_values) {
