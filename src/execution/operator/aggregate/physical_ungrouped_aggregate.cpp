@@ -255,7 +255,7 @@ void PhysicalUngroupedAggregate::runStateCollectors(DataChunk &input) const {
 SinkResultType PhysicalUngroupedAggregate::Sink(ExecutionContext &context, DataChunk &chunk,
                                                 OperatorSinkInput &input) const {
 
-	runInputCheckers(chunk);
+	// runInputCheckers(chunk);
 	runStateCollectors(chunk);
 	// store->Move(std::move(chunk.store));
 	store->MergeStore(*chunk.store);

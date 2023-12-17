@@ -341,7 +341,6 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 		profiler.StartPhase("policy_checker");
 		Analyzer analyzer;
 		plan = analyzer.modifiedPlan(std::move(plan));
-		plan = analyzer.modifyStateFunctionLocations(std::move(plan));
 		plan->Print();
 
 		// Value policyfile;
