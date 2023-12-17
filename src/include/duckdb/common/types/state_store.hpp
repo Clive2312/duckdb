@@ -19,7 +19,7 @@ class StateStore {
     Value GetStateValue(int id);
     void SetStateValue(int id, Value &val);
     void MergeStore(StateStore &other);
-    void Move(unique_ptr<StateStore> other);
+    void Move(StateStore &other);
     public:
     unordered_map<int, vector<Value>> store;
 

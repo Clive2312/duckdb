@@ -36,8 +36,8 @@ void StateStore::MergeStore(StateStore &other) {
     return;
 }
 
-void StateStore::Move(unique_ptr<StateStore> other){
-    this->MergeStore(*other);
+void StateStore::Move(StateStore &other){
+    this->MergeStore(other);
     return;
 }
 

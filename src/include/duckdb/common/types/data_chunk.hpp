@@ -49,7 +49,7 @@ public:
 
 	//! The vectors owned by the DataChunk.
 	vector<Vector> data;
-	unique_ptr<StateStore> store;
+	StateStore *store;
 
 public:
 	inline idx_t size() const { // NOLINT

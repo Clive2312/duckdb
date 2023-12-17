@@ -24,7 +24,7 @@ PhysicalUngroupedAggregate::PhysicalUngroupedAggregate(vector<LogicalType> types
     : PhysicalOperator(PhysicalOperatorType::UNGROUPED_AGGREGATE, std::move(types), estimated_cardinality),
       aggregates(std::move(expressions)) {
 	
-	store = make_uniq<StateStore>();
+	store = new StateStore();
 	distinct_collection_info = DistinctAggregateCollectionInfo::Create(aggregates);
 	if (!distinct_collection_info) {
 		return;
@@ -37,7 +37,7 @@ PhysicalUngroupedAggregate::PhysicalUngroupedAggregate(vector<LogicalType> types
 //===--------------------------------------------------------------------===//
 struct AggregateState {
 	explicit AggregateState(const vector<unique_ptr<Expression>> &aggregate_expressions) {
-		store = make_uniq<StateStore>();
+		store = new StateStore();
 		for (auto &aggregate : aggregate_expressions) {
 			D_ASSERT(aggregate->GetExpressionClass() == ExpressionClass::BOUND_AGGREGATE);
 			auto &aggr = aggregate->Cast<BoundAggregateExpression>();
@@ -68,7 +68,8 @@ struct AggregateState {
 	void Move(AggregateState &other) {
 		other.aggregates = std::move(aggregates);
 		other.destructors = std::move(destructors);
-		other.store = std::move(store);
+		delete(other.store);
+		other.store = store;
 	}
 
 	//! The aggregate values
@@ -80,7 +81,7 @@ struct AggregateState {
 	//! Counts (used for verification)
 	vector<idx_t> counts;
 	//! Stores the metric states
-	unique_ptr<StateStore> store;
+	StateStore *store;
 };
 
 class UngroupedAggregateGlobalState : public GlobalSinkState {

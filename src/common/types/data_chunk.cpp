@@ -22,7 +22,7 @@
 
 namespace duckdb {
 
-DataChunk::DataChunk() : count(0), capacity(STANDARD_VECTOR_SIZE), store(make_uniq<StateStore>()) {
+DataChunk::DataChunk() : count(0), capacity(STANDARD_VECTOR_SIZE), store(new StateStore()) {
 }
 
 DataChunk::~DataChunk() {
