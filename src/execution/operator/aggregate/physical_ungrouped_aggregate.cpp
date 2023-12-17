@@ -258,12 +258,14 @@ SinkResultType PhysicalUngroupedAggregate::Sink(ExecutionContext &context, DataC
 	// runInputCheckers(chunk);
 	runStateCollectors(chunk);
 	// store->Move(std::move(chunk.store));
-	store->MergeStore(*chunk.store);
+	// store->MergeStore(*chunk.store);
 	auto &sink = input.local_state.Cast<UngroupedAggregateLocalState>();
 
 	// perform the aggregation inside the local state
 	sink.Reset();
 
+	sink.state.store->MergeStore(*chunk.store);
+	
 	if (distinct_data) {
 		SinkDistinct(context, chunk, input);
 	}
@@ -351,7 +353,7 @@ void PhysicalUngroupedAggregate::Combine(ExecutionContext &context, GlobalSinkSt
 	lock_guard<mutex> glock(gstate.lock);
 
 	CombineDistinct(context, state, lstate);
-
+	gstate.state.store->MergeStore(*source.state.store);
 	for (idx_t aggr_idx = 0; aggr_idx < aggregates.size(); aggr_idx++) {
 		auto &aggregate = aggregates[aggr_idx]->Cast<BoundAggregateExpression>();
 
