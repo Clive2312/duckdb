@@ -15,11 +15,15 @@ namespace duckdb {
 
 class StateStore {
     public:
+    
     StateStore();
-    Value GetStateValue(int id);
+    bool HasStateId(int id);
+    vector<Value> GetStateValue(int id);
     void SetStateValue(int id, Value &val);
     void MergeStore(StateStore &other);
+    void ReplaceStateValue(int id, Value val);
     void Move(StateStore &other);
+
     public:
     unordered_map<int, vector<Value>> store;
 
