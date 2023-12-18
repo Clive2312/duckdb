@@ -64,7 +64,7 @@ public:
 	vector<std::function<bool(DataChunk&)>> inputCheckers;
 	vector<unique_ptr<StateVar>> states;
 	vector<std::function<void(DataChunk &)>> collectors;
-	vector<std::function<void(vector<Value> &)>> combiners;
+	unordered_map<int, std::function<Value(vector<Value> &)>> combiners;
 	//! Lock for (re)setting any of the operator states
 	mutex lock;
 

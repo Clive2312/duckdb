@@ -22,7 +22,7 @@ public:
     StateVar(int id, Value val);
 
     virtual void Collector(DataChunk &data);
-    virtual void Combiner(vector<Value> &local_values);
+    virtual Value Combiner(vector<Value> &local_values);
 };
 
 };

@@ -17,6 +17,6 @@ public:
     CountRowState(int id, Value val);
     
     void Collector(DataChunk &data);
-    void Combiner(vector<Value> &local_values);
+    Value Combiner(vector<Value> &local_values);
 };
 };
