@@ -13,11 +13,12 @@ void CountRowState::Collector(DataChunk &data) {
     data.store->SetStateValue(id, val);
 }
 
-void CountRowState::Combiner(vector<Value> &local_values) {
+Value CountRowState::Combiner(vector<Value> &local_values) {
+    int gval = 0;
     for(auto &local_val: local_values) {
-        auto valint = val.template GetValue<int>();
         auto local_val_int = local_val.template GetValue<int>();
-        val = Value(valint + local_val_int);
+        gval += local_val_int;
     }
+    return Value((int)gval); 
 }
 }
