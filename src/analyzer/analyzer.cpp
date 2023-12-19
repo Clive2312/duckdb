@@ -16,22 +16,6 @@ unique_ptr<LogicalOperator> Analyzer::modifiedPlan(unique_ptr<LogicalOperator> o
     return op;
 }
 
-unique_ptr<LogicalOperator> separateFunctions(unique_ptr<LogicalOperator> op) {
-    for(auto &state:op->states) {
-        op->collectors.emplace_back(std::bind(&StateVar::Collector, *state, _1));
-        op->combiners.emplace_back(std::bind(&StateVar::Combiner, *state, _1));
-    }
-    return op;
-}
-
-unique_ptr<LogicalOperator> Analyzer::modifyStateFunctionLocations(unique_ptr<LogicalOperator> op){
-    if(op == NULL) return op;
-
-    for(auto &child: op->children) {
-        child = std::move(modifyStateFunctionLocations(std::move(child)));
-    }
-    return separateFunctions(std::move(op));
-}   
 // Analyzer::Analyzer(Json::Value &policies_json){
 //     for(auto &policy: policies_json) {
 //         policies.emplace_back(make_shared<Policy>(policy));

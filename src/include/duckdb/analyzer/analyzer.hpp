@@ -31,7 +31,6 @@ public:
 	Analyzer();
 	// Analyzer(Json::Value &policies_json);
 	unique_ptr<LogicalOperator> modifiedPlan(unique_ptr<LogicalOperator> op);
-	unique_ptr<LogicalOperator> modifyStateFunctionLocations(unique_ptr<LogicalOperator> op);
 	void VisitOperator(LogicalOperator &op);
 	unique_ptr<LogicalOperator> MatchAndInsertPolicies(unique_ptr<LogicalOperator> plan);
 
