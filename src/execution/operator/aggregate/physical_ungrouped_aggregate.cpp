@@ -236,9 +236,9 @@ void PhysicalUngroupedAggregate::SinkDistinct(ExecutionContext &context, DataChu
 	}
 }
 
-void PhysicalUngroupedAggregate::runInputCheckers(DataChunk &input) const {
+void PhysicalUngroupedAggregate::runInputCheckers(StateStore &store) const {
 	for(auto &inputCheckerFunc: inputCheckers) {
-		if(!inputCheckerFunc(input)) {
+		if(!inputCheckerFunc(store)) {
 			throw std::domain_error("Range policy violation.\n");
 		} 
 	}

@@ -26,7 +26,7 @@ unique_ptr<LogicalOperator> AccountRangePolicy::modifyPlan(unique_ptr<LogicalOpe
     return op;
 }
 
-bool AccountRangePolicy::inputChecker(DataChunk &data) {
+bool AccountRangePolicy::inputChecker(StateStore &store) {
     
     // for(int i = 0; i < input.size(); i++) { // TODO: 1. We need to abstract how the operator is working on the table data
     //     auto val = input.GetValue(0, i); // assume operator knows the catalog and schema
@@ -34,7 +34,9 @@ bool AccountRangePolicy::inputChecker(DataChunk &data) {
     //         return false;
     //     }
     // }
-    if(data.store->GetStateValue(1).front() > 1) {
+
+    if(store.GetStateValue(1).front() < 3) {
+        throw std::domain_error("Range policy violation.\n");
         return false;
     }
     

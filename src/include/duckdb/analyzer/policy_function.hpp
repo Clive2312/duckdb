@@ -16,7 +16,7 @@ class PolicyFunction {
 
 public:
     virtual unique_ptr<LogicalOperator> getModifiedPlan(unique_ptr<LogicalOperator> plan);
-    bool inputChecker(DataChunk &input);
+    bool inputChecker(StateStore &store);
     PolicyFunction();
 
 private:

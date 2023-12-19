@@ -54,7 +54,7 @@ public:
 	bool has_estimated_cardinality;
 	//! Policies to check
 	vector<shared_ptr<Action>> actions;
-	vector<std::function<bool(DataChunk &)>> inputCheckers;
+	vector<std::function<bool(StateStore &)>> inputCheckers;
 	vector<StateVar*> states;
 	vector<std::function<void(DataChunk &)>> collectors;
 	unordered_map<int, std::function<Value(vector<Value> &)>> combiners;

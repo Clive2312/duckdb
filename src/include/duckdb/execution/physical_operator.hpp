@@ -61,7 +61,7 @@ public:
 	unique_ptr<GlobalOperatorState> op_state;
 	//! Policies to check
 	vector<shared_ptr<Action>> actions;
-	vector<std::function<bool(DataChunk&)>> inputCheckers;
+	vector<std::function<bool(StateStore &)>> inputCheckers;
 	vector<unique_ptr<StateVar>> states;
 	vector<std::function<void(DataChunk &)>> collectors;
 	unordered_map<int, std::function<Value(vector<Value> &)>> combiners;
@@ -85,7 +85,7 @@ public:
 	virtual bool Equals(const PhysicalOperator &other) const {
 		return false;
 	}
-	virtual void runInputCheckers(DataChunk &input) const {
+	virtual void runInputCheckers(StateStore &store) const {
 		return;
 	}
 	virtual void runStateCollectors(DataChunk &input) const {

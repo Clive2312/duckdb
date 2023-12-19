@@ -4,7 +4,7 @@ namespace duckdb {
 
 PolicyFunction::PolicyFunction(){};
 
-bool PolicyFunction::inputChecker(DataChunk &input) {
+bool PolicyFunction::inputChecker(StateStore &store) {
     return true;
 }
 
