@@ -10,8 +10,8 @@ void StateVar::Collector(DataChunk &data) {
     return;
 }
 
-void StateVar::Combiner(vector<Value> &local_values) {
-    return;
+Value StateVar::Combiner(vector<Value> &local_values) {
+    return Value(0);
 }
 
 };
