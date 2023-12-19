@@ -83,6 +83,7 @@ void DataChunk::Reset() {
 void DataChunk::Destroy() {
 	data.clear();
 	vector_caches.clear();
+	delete(store);
 	capacity = 0;
 	SetCardinality(0);
 }

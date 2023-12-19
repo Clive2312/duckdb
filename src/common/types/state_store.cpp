@@ -5,6 +5,7 @@ namespace duckdb{
 StateStore::StateStore() {};
 
 vector<Value> StateStore::GetStateValue(int id) {
+    vector<Value> values = {};
     if(HasStateId(id)) {
         return store[id]; //fix this for using combiner function
     }
@@ -34,12 +35,10 @@ bool StateStore::HasStateId(int id){
 void StateStore::MergeStore(StateStore &other) {
     for(auto &entry: other.store){
         if(store.find(entry.first) == store.end()) {
-            store[entry.first] = entry.second;
+            store[entry.first] = {};
         }
-        else {
-            for(auto &val: entry.second) {
-                store[entry.first].emplace_back(val);
-            }
+        for(auto &val: entry.second) {
+            store[entry.first].emplace_back(val);
         }
     } 
 
