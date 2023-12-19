@@ -31,6 +31,10 @@ public:
 
 	bool ParallelSink() const override;
 	bool SinkOrderDependent() const override;
+	
+	// Policy Violation
+	void collectAllCheckers(PhysicalOperator &plan);
+	void runInputCheckers(StateStore &store) const override;
 };
 
 } // namespace duckdb
