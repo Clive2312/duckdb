@@ -15,7 +15,7 @@
 #include "duckdb/parallel/interrupt.hpp"
 #include <functional>
 #include "duckdb/execution/operator/aggregate/distinct_aggregate_data.hpp"
-
+#include <iostream>
 namespace duckdb {
 
 PhysicalUngroupedAggregate::PhysicalUngroupedAggregate(vector<LogicalType> types,
@@ -255,10 +255,7 @@ void PhysicalUngroupedAggregate::runStateCollectors(DataChunk &input) const {
 SinkResultType PhysicalUngroupedAggregate::Sink(ExecutionContext &context, DataChunk &chunk,
                                                 OperatorSinkInput &input) const {
 
-	// runInputCheckers(chunk);
 	runStateCollectors(chunk);
-	// store->Move(std::move(chunk.store));
-	// store->MergeStore(*chunk.store);
 	auto &sink = input.local_state.Cast<UngroupedAggregateLocalState>();
 
 	// perform the aggregation inside the local state
@@ -560,7 +557,8 @@ void PhysicalUngroupedAggregate::FinalizeStore(GlobalSinkState &gstate_p) const 
 		auto id = comb.first;
 		auto combiner = comb.second;
 		if(gstate.state.store->HasStateId(id)) {
-			gstate.state.store->ReplaceStateValue(id, combiner(gstate.state.store->GetStateValue(id)));
+			vector<Value> val = gstate.state.store->GetStateValue(id); 
+			gstate.state.store->ReplaceStateValue(id, combiner(val));
 		}
 	}
 }
@@ -568,12 +566,12 @@ void PhysicalUngroupedAggregate::FinalizeStore(GlobalSinkState &gstate_p) const 
 SinkFinalizeType PhysicalUngroupedAggregate::Finalize(Pipeline &pipeline, Event &event, ClientContext &context,
                                                       GlobalSinkState &gstate_p) const {
 	auto &gstate = gstate_p.Cast<UngroupedAggregateGlobalState>();
+	FinalizeStore(gstate_p);
 
 	if (distinct_data) {
 		return FinalizeDistinct(pipeline, event, context, gstate_p);
 	}
 
-	FinalizeStore(gstate_p);
 	D_ASSERT(!gstate.finished);
 	gstate.finished = true;
 	return SinkFinalizeType::READY;
@@ -603,6 +601,7 @@ SourceResultType PhysicalUngroupedAggregate::GetData(ExecutionContext &context, 
 
 	// initialize the result chunk with the aggregate values
 	chunk.SetCardinality(1);
+	chunk.store->MergeStore(*gstate.state.store);
 	for (idx_t aggr_idx = 0; aggr_idx < aggregates.size(); aggr_idx++) {
 		auto &aggregate = aggregates[aggr_idx]->Cast<BoundAggregateExpression>();
 
