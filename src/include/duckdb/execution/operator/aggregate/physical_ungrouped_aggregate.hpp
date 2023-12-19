@@ -74,6 +74,8 @@ private:
 	void CombineDistinct(ExecutionContext &context, GlobalSinkState &state, LocalSinkState &lstate) const;
 	//! Sink the distinct aggregates
 	void SinkDistinct(ExecutionContext &context, DataChunk &chunk, OperatorSinkInput &input) const;
+
+	void FinalizeStore(GlobalSinkState &gstate) const;
 };
 
 } // namespace duckdb

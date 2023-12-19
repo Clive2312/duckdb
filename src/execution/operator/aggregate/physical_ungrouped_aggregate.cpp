@@ -554,6 +554,17 @@ SinkFinalizeType PhysicalUngroupedAggregate::FinalizeDistinct(Pipeline &pipeline
 	return SinkFinalizeType::READY;
 }
 
+void PhysicalUngroupedAggregate::FinalizeStore(GlobalSinkState &gstate_p) const {
+	auto &gstate = gstate_p.Cast<UngroupedAggregateGlobalState>();
+	for(auto &comb: combiners) {
+		auto id = comb.first;
+		auto combiner = comb.second;
+		if(gstate.state.store->HasStateId(id)) {
+			gstate.state.store->ReplaceStateValue(id, combiner(gstate.state.store->GetStateValue(id)));
+		}
+	}
+}
+
 SinkFinalizeType PhysicalUngroupedAggregate::Finalize(Pipeline &pipeline, Event &event, ClientContext &context,
                                                       GlobalSinkState &gstate_p) const {
 	auto &gstate = gstate_p.Cast<UngroupedAggregateGlobalState>();
@@ -562,6 +573,7 @@ SinkFinalizeType PhysicalUngroupedAggregate::Finalize(Pipeline &pipeline, Event 
 		return FinalizeDistinct(pipeline, event, context, gstate_p);
 	}
 
+	FinalizeStore(gstate_p);
 	D_ASSERT(!gstate.finished);
 	gstate.finished = true;
 	return SinkFinalizeType::READY;
