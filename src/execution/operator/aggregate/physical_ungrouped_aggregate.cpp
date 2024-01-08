@@ -24,7 +24,6 @@ PhysicalUngroupedAggregate::PhysicalUngroupedAggregate(vector<LogicalType> types
     : PhysicalOperator(PhysicalOperatorType::UNGROUPED_AGGREGATE, std::move(types), estimated_cardinality),
       aggregates(std::move(expressions)) {
 	
-	store = new StateStore();
 	distinct_collection_info = DistinctAggregateCollectionInfo::Create(aggregates);
 	if (!distinct_collection_info) {
 		return;
@@ -53,6 +52,7 @@ struct AggregateState {
 	}
 	~AggregateState() {
 		D_ASSERT(destructors.size() == aggregates.size());
+		delete(store);
 		for (idx_t i = 0; i < destructors.size(); i++) {
 			if (!destructors[i]) {
 				continue;

@@ -1,5 +1,4 @@
 #include "duckdb/common/types/state_store.hpp"
-
 namespace duckdb{
 
 StateStore::StateStore() {};
@@ -35,13 +34,14 @@ bool StateStore::HasStateId(int id){
 void StateStore::MergeStore(StateStore &other) {
     for(auto &entry: other.store){
         if(store.find(entry.first) == store.end()) {
-            store[entry.first] = {};
+            store[entry.first] = vector<Value>(entry.second.begin(), entry.second.end());
+        } else {
+            for(auto val: entry.second) {
+                store[entry.first].emplace_back(val);
+            }
         }
-        for(auto &val: entry.second) {
-            store[entry.first].emplace_back(val);
-        }
-    } 
-
+    }
+    other.store = {};
     return;
 }
 

@@ -32,7 +32,6 @@ public:
 	//! The aggregates that have to be computed
 	vector<unique_ptr<Expression>> aggregates;
 	unique_ptr<DistinctAggregateData> distinct_data;
-	StateStore *store;
 	unique_ptr<DistinctAggregateCollectionInfo> distinct_collection_info;
 
 public:

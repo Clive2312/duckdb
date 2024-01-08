@@ -215,6 +215,7 @@ void DataChunk::Append(const DataChunk &other, bool resize, SelectionVector *sel
 			VectorOperations::Copy(other.data[i], data[i], other.size(), 0, size());
 		}
 	}
+	store->MergeStore(*other.store);
 	SetCardinality(new_size);
 }
 
