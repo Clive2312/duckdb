@@ -1,5 +1,6 @@
 #include "duckdb/analyzer/policy/account_range_policy.hpp"
 #include "duckdb/common/states/count_row_state.hpp"
+#include "duckdb/common/states/avg_state.hpp"
 #include <iostream>
 #include "duckdb/planner/operator/logical_aggregate.hpp"
 
@@ -15,8 +16,11 @@ unique_ptr<LogicalOperator> AccountRangePolicy::modifyPlan(unique_ptr<LogicalOpe
         LogicalAggregate &temp = op->Cast<LogicalAggregate>(); // TODO: abstract the type of the operator based on duckdb implementation
         op->inputCheckers.emplace_back(std::bind(&AccountRangePolicy::inputChecker, *this, _1));
         CountRowState *obj = new CountRowState(1, Value(0));
+        AvgState *obj2 = new AvgState(2);
         op->combiners[1] = std::bind(&CountRowState::Combiner, obj, _1);
+        op->combiners[2] = std::bind(&AvgState::Combiner, obj2, _1);
         op->collectors.emplace_back(std::bind(&CountRowState::Collector, obj, _1));
+        op->collectors.emplace_back(std::bind(&AvgState::Collector, obj2, _1));
     }
 
     for(auto &child: op->children) {
@@ -27,19 +31,14 @@ unique_ptr<LogicalOperator> AccountRangePolicy::modifyPlan(unique_ptr<LogicalOpe
 }
 
 bool AccountRangePolicy::inputChecker(StateStore &store) {
-    
-    // for(int i = 0; i < input.size(); i++) { // TODO: 1. We need to abstract how the operator is working on the table data
-    //     auto val = input.GetValue(0, i); // assume operator knows the catalog and schema
-    //     if(val <= Value(300)) {
-    //         return false;
-    //     }
-    // }
-
-    if(store.GetStateValue(1).front() < 3) {
+    if(store.GetStateValue(1).front() < 50000) {
         throw std::domain_error("Range policy violation.\n");
         return false;
     }
-    
+    if(store.GetStateValue(2).front() < 3000) {
+        throw std::domain_error("Average Quantity violation.\n");
+        return false;
+    }
     return true;
 }                           
 
