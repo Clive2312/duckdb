@@ -25,16 +25,14 @@ int main() {
 	// con.Query("INSERT INTO customer VALUES (10, 'abc', NULL, 'a')");
 	
 	// auto result = con.Query("SELECT * FROM customer");
-
+	// auto result = con.Query("COPY (SELECT * FROM read_csv_auto('./ratings.csv')) TO 'ratings.parquet' (FORMAT PARQUET);");
 	// auto result = con.Query("SELECT * FROM parquet_scan('./db/customer.parquet', policy_file='./policy/rule.json') WHERE Region='a' ");
-	auto result = con.Query("SELECT SUM(Account) FROM parquet_scan('./db/customer.parquet') WHERE Account > 350");
-	// auto result = con.Query("SELECT Region, SUM(Account) FROM parquet_scan('./db/customer.parquet') GROUP BY Region");
-	// auto result = con.Query("SELECT * FROM parquet_scan('./db/customer.parquet', policy_file='./policy/rule.json')");
+	// auto result = con.Query("SELECT SUM(Account) FROM parquet_scan('./db/customer.parquet')");
+
+	// auto result = con.Query("SELECT AVG(time), AVG(quantity), AVG(price), SUM(price), Count(price) FROM parquet_scan('./trade.parquet') WHERE price > 300 AND quantity < 4000");
+
+	auto result = con.Query("SELECT Count(*), AVG(time), AVG(quantity), AVG(price), SUM(price), Avg(rating) FROM parquet_scan('./ratings.parquet') as R JOIN parquet_scan('./trade.parquet') as T ON R.stocksymbol = T.stocksymbol WHERE price > 300 AND quantity < 4000");
 
 	result->Print();
-
-	// std::cout<<"Print Enter to continue";
-	// while(getchar()!= '\n'){};
-	
 	return 0;
 }
