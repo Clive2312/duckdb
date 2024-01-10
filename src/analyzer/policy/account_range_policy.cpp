@@ -16,15 +16,17 @@ unique_ptr<LogicalOperator> AccountRangePolicy::modifyPlan(unique_ptr<LogicalOpe
         // TODO: Abstract the logical operator 
         LogicalAggregate &temp = op->Cast<LogicalAggregate>(); // TODO: abstract the type of the operator based on duckdb implementation
         op->inputCheckers.emplace_back(std::bind(&AccountRangePolicy::inputChecker, *this, _1));
+
         CountRowState *obj = new CountRowState(1, Value(0));
-        AvgState *obj2 = new AvgState(2);
-        MedianState *obj3 = new MedianState(3);
         op->combiners[1] = std::bind(&CountRowState::Combiner, obj, _1);
-        op->combiners[2] = std::bind(&AvgState::Combiner, obj2, _1);
-        op->combiners[3] = std::bind(&MedianState::Combiner, obj3, _1);
-        
         op->collectors.emplace_back(std::bind(&CountRowState::Collector, obj, _1));
+
+        AvgState *obj2 = new AvgState(2);
+        op->combiners[2] = std::bind(&AvgState::Combiner, obj2, _1);
         op->collectors.emplace_back(std::bind(&AvgState::Collector, obj2, _1));
+
+        MedianState *obj3 = new MedianState(3);
+        op->combiners[3] = std::bind(&MedianState::Combiner, obj3, _1);
         op->collectors.emplace_back(std::bind(&MedianState::Collector, obj3, _1));
     }
 
