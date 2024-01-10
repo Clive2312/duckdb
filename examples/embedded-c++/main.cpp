@@ -31,7 +31,7 @@ int main() {
 
 	// auto result = con.Query("SELECT AVG(time), AVG(quantity), AVG(price), SUM(price), Count(price) FROM parquet_scan('./trade.parquet') WHERE price > 300 AND quantity < 4000");
 
-	auto result = con.Query("SELECT Count(*), AVG(time), AVG(quantity), AVG(price), SUM(price), Avg(rating) FROM parquet_scan('./ratings.parquet') as R JOIN parquet_scan('./trade.parquet') as T ON R.stocksymbol = T.stocksymbol WHERE price > 300 AND quantity < 4000");
+	auto result = con.Query("SELECT Count(*), AVG(time), AVG(quantity), MEDIAN(quantity), AVG(price), SUM(price), Avg(rating) FROM parquet_scan('./ratings.parquet') as R JOIN parquet_scan('./trade.parquet') as T ON R.stocksymbol = T.stocksymbol WHERE price > 300 AND quantity < 4000");
 
 	result->Print();
 	return 0;
