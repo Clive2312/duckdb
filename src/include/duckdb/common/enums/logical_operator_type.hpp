@@ -104,7 +104,12 @@ enum class LogicalOperatorType : uint8_t {
 	LOGICAL_LOAD = 180,
 	LOGICAL_RESET = 181,
 
-	LOGICAL_EXTENSION_OPERATOR = 255
+	LOGICAL_EXTENSION_OPERATOR = 255,
+
+	// -----------------------------
+	// Policy Operator
+	// -----------------------------
+	LOGICAL_POLICY_OPERATOR = 200
 };
 
 DUCKDB_API string LogicalOperatorToString(LogicalOperatorType type);
