@@ -815,6 +815,30 @@ unique_ptr<QueryResult> ClientContext::Query(unique_ptr<SQLStatement> statement,
 	return pending_query->Execute();
 }
 
+void ClientContext::PolicyChecking(ClientContextLock &lock, string policies, vector<std::function<void(unique_ptr<QueryResult>)>> &checkers) {
+	vector<unique_ptr<SQLStatement>> policy_statements;
+	PreservedError error;
+	if (!ParseStatements(lock, policies, policy_statements, error) || policy_statements.empty()) {
+		return ;
+	}
+	D_ASSERT(policy_statements.size() == checkers.size());
+
+	for(idx_t i = 0; i < policy_statements.size(); i++) {
+		auto &policy = policy_statements[i];
+		auto &checker = checkers[i];
+		PendingQueryParameters parameters;
+		auto pending_query = PendingQueryInternal(lock, std::move(policy), parameters);
+		unique_ptr<QueryResult> current_result;
+		if (pending_query->HasError()) {
+			current_result = make_uniq<MaterializedQueryResult>(pending_query->GetErrorObject());
+		} else {
+			current_result = ExecutePendingQueryInternal(lock, *pending_query);
+			checker(std::move(current_result));
+		}
+	}
+	return;
+}
+
 unique_ptr<QueryResult> ClientContext::Query(const string &query, bool allow_stream_result) {
 	auto lock = LockContext();
 
