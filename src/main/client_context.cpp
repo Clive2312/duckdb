@@ -310,7 +310,7 @@ static bool IsExplainAnalyze(SQLStatement *statement) {
 
 shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientContextLock &lock, const string &query,
                                                                          unique_ptr<SQLStatement> statement,
-                                                                         vector<Value> *values) {
+                                                                         vector<Value> *values, bool allow_policy_checker) {
 	StatementType statement_type = statement->type;
 	auto result = make_shared<PreparedStatementData>(statement_type);
 
@@ -337,7 +337,7 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 	result->value_map = std::move(planner.value_map);
 	result->catalog_version = MetaTransaction::Get(*this).catalog_version;
 
-	if(config.enable_policy_checker) {
+	if(allow_policy_checker) {
 		profiler.StartPhase("policy_checker");
 		Analyzer analyzer;
 		plan = analyzer.modifiedPlan(std::move(plan));
@@ -631,7 +631,7 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementInternal(ClientCon
                                                                        unique_ptr<SQLStatement> statement,
                                                                        PendingQueryParameters parameters) {
 	// prepare the query for execution
-	auto prepared = CreatePreparedStatement(lock, query, std::move(statement), parameters.parameters);
+	auto prepared = CreatePreparedStatement(lock, query, std::move(statement), parameters.parameters, parameters.allow_policy_checker);
 	if (prepared->properties.parameter_count > 0 && !parameters.parameters) {
 		string error_message = StringUtil::Format("Expected %lld parameters, but none were supplied",
 		                                          prepared->properties.parameter_count);
@@ -750,7 +750,7 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatemen
 			if (prepared->RequireRebind(*this, *parameters.parameters)) {
 				// catalog was modified: rebind the statement before execution
 				auto new_prepared =
-				    CreatePreparedStatement(lock, query, prepared->unbound_statement->Copy(), parameters.parameters);
+				    CreatePreparedStatement(lock, query, prepared->unbound_statement->Copy(), parameters.parameters, parameters.allow_policy_checker);
 				D_ASSERT(new_prepared->properties.bound_all_parameters);
 				new_prepared->unbound_statement = std::move(prepared->unbound_statement);
 				prepared = std::move(new_prepared);
@@ -864,6 +864,7 @@ unique_ptr<QueryResult> ClientContext::Query(const string &query, bool allow_str
 		bool is_last_statement = i + 1 == statements.size();
 		PendingQueryParameters parameters;
 		parameters.allow_stream_result = allow_stream_result && is_last_statement;
+		parameters.allow_policy_checker = true;
 		auto pending_query = PendingQueryInternal(*lock, std::move(statement), parameters);
 		auto has_result = pending_query->properties.return_type == StatementReturnType::QUERY_RESULT;
 		unique_ptr<QueryResult> current_result;

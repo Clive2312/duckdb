@@ -49,6 +49,8 @@ struct PendingQueryParameters {
 	vector<Value> *parameters = nullptr;
 	//! Whether or not a stream result should be allowed
 	bool allow_stream_result = false;
+	//! Whether policy checker should run for this query of not
+	bool allow_policy_checker = false;
 };
 
 //! ClientContextState is virtual base class for ClientContext-local (or Query-Local, using QueryEnd callback) state
@@ -205,7 +207,7 @@ private:
 	//! Perform aggressive query verification of a SELECT statement. Only called when query_verification_enabled is
 	//! true.
 	PreservedError VerifyQuery(ClientContextLock &lock, const string &query, unique_ptr<SQLStatement> statement);
-
+	void PolicyChecking(ClientContextLock &lock, string policies, vector<std::function<void(unique_ptr<QueryResult>)>> &checkers);
 	void InitialCleanup(ClientContextLock &lock);
 	//! Internal clean up, does not lock. Caller must hold the context_lock.
 	void CleanupInternal(ClientContextLock &lock, BaseQueryResult *result = nullptr,
@@ -219,9 +221,12 @@ private:
 	                                                        PendingQueryParameters parameters);
 
 	//! Internally prepare a SQL statement. Caller must hold the context_lock.
+	// shared_ptr<PreparedStatementData> CreatePreparedStatement(ClientContextLock &lock, const string &query,
+	//                                                           unique_ptr<SQLStatement> statement,
+	//                                                           vector<Value> *values = nullptr);
 	shared_ptr<PreparedStatementData> CreatePreparedStatement(ClientContextLock &lock, const string &query,
-	                                                          unique_ptr<SQLStatement> statement,
-	                                                          vector<Value> *values = nullptr);
+											  				  unique_ptr<SQLStatement> statement,
+															  vector<Value> *values = nullptr, bool allow_policy_checker = false);										  
 	unique_ptr<PendingQueryResult> PendingStatementInternal(ClientContextLock &lock, const string &query,
 	                                                        unique_ptr<SQLStatement> statement,
 	                                                        PendingQueryParameters parameters);
