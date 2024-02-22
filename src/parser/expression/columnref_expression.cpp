@@ -70,7 +70,7 @@ string ColumnRefExpression::ToXMLString() const {
 		if (i > 0) {
 			result += ".";
 		}
-		result += KeywordHelper::WriteOptionallyQuoted(column_names[i]);
+		result += column_names[i];
 	}
 	result += "</column_ref>";
 	return result;

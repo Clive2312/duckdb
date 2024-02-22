@@ -13,7 +13,7 @@ StarExpression::StarExpression(string relation_name_p)
 }
 
 string StarExpression::ToXMLString() const {
-	return "\"" + ToString() +"\"";
+	return ToString();
 }
 
 string StarExpression::ToString() const {

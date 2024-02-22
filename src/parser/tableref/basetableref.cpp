@@ -11,7 +11,7 @@ string BaseTableRef::ToString() const {
 	string result;
 	result += catalog_name.empty() ? "" : (KeywordHelper::WriteOptionallyQuoted(catalog_name) + ".");
 	result += schema_name.empty() ? "" : (KeywordHelper::WriteOptionallyQuoted(schema_name) + ".");
-	result += KeywordHelper::WriteOptionallyQuoted(table_name);
+	result += table_name;
 	return BaseToString(result, column_name_alias);
 }
 
