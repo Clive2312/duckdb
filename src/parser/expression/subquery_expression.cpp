@@ -12,6 +12,10 @@ SubqueryExpression::SubqueryExpression()
       comparison_type(ExpressionType::INVALID) {
 }
 
+string SubqueryExpression::ToXMLString() const {
+	return "";
+}
+
 string SubqueryExpression::ToString() const {
 	switch (subquery_type) {
 	case SubqueryType::ANY:

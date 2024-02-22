@@ -27,6 +27,10 @@ string CaseExpression::ToString() const {
 	return ToString<CaseExpression, ParsedExpression>(*this);
 }
 
+string CaseExpression::ToXMLString() const {
+	return "";
+}
+
 bool CaseExpression::Equal(const CaseExpression &a, const CaseExpression &b) {
 	if (a.case_checks.size() != b.case_checks.size()) {
 		return false;

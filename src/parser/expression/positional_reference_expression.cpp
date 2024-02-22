@@ -18,6 +18,10 @@ string PositionalReferenceExpression::ToString() const {
 	return "#" + to_string(index);
 }
 
+string PositionalReferenceExpression::ToXMLString() const {
+	return "";
+}
+
 bool PositionalReferenceExpression::Equal(const PositionalReferenceExpression &a,
                                           const PositionalReferenceExpression &b) {
 	return a.index == b.index;

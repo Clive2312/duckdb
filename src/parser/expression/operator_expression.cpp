@@ -27,6 +27,10 @@ string OperatorExpression::ToString() const {
 	return ToString<OperatorExpression, ParsedExpression>(*this);
 }
 
+string OperatorExpression::ToXMLString() const {
+	return "";
+}
+
 bool OperatorExpression::Equal(const OperatorExpression &a, const OperatorExpression &b) {
 	if (a.children.size() != b.children.size()) {
 		return false;

@@ -15,6 +15,10 @@ string BetweenExpression::ToString() const {
 	return ToString<BetweenExpression, ParsedExpression>(*this);
 }
 
+string BetweenExpression::ToXMLString() const {
+	return "between";
+}
+
 bool BetweenExpression::Equal(const BetweenExpression &a, const BetweenExpression &b) {
 	if (!a.input->Equals(*b.input)) {
 		return false;

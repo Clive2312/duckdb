@@ -16,6 +16,10 @@ string LambdaExpression::ToString() const {
 	return lhs->ToString() + " -> " + expr->ToString();
 }
 
+string LambdaExpression::ToXMLString() const {
+	return "";
+}
+
 bool LambdaExpression::Equal(const LambdaExpression &a, const LambdaExpression &b) {
 	return a.lhs->Equals(*b.lhs) && a.expr->Equals(*b.expr);
 }

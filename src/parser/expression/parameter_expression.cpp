@@ -18,6 +18,10 @@ string ParameterExpression::ToString() const {
 	return "$" + to_string(parameter_nr);
 }
 
+string ParameterExpression::ToXMLString() const {
+	return "";
+}
+
 unique_ptr<ParsedExpression> ParameterExpression::Copy() const {
 	auto copy = make_uniq<ParameterExpression>();
 	copy->parameter_nr = parameter_nr;

@@ -18,6 +18,10 @@ string CollateExpression::ToString() const {
 	return StringUtil::Format("%s COLLATE %s", child->ToString(), SQLIdentifier(collation));
 }
 
+string CollateExpression::ToXMLString() const {
+	return "";
+}
+
 bool CollateExpression::Equal(const CollateExpression &a, const CollateExpression &b) {
 	if (!a.child->Equals(*b.child)) {
 		return false;

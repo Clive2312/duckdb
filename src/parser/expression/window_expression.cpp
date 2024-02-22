@@ -63,6 +63,10 @@ string WindowExpression::ToString() const {
 	return ToString<WindowExpression, ParsedExpression, OrderByNode>(*this, schema, function_name);
 }
 
+string WindowExpression::ToXMLString() const {
+	return "";
+}
+
 bool WindowExpression::Equal(const WindowExpression &a, const WindowExpression &b) {
 	// check if the child expressions are equivalent
 	if (a.ignore_nulls != b.ignore_nulls) {

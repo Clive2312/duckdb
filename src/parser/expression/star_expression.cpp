@@ -12,6 +12,10 @@ StarExpression::StarExpression(string relation_name_p)
     : ParsedExpression(ExpressionType::STAR, ExpressionClass::STAR), relation_name(std::move(relation_name_p)) {
 }
 
+string StarExpression::ToXMLString() const {
+	return "\"" + ToString() +"\"";
+}
+
 string StarExpression::ToString() const {
 	if (expr) {
 		D_ASSERT(columns);

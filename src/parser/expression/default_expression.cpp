@@ -14,6 +14,10 @@ string DefaultExpression::ToString() const {
 	return "DEFAULT";
 }
 
+string DefaultExpression::ToXMLString() const {
+	return "";
+}
+
 unique_ptr<ParsedExpression> DefaultExpression::Copy() const {
 	auto copy = make_uniq<DefaultExpression>();
 	copy->CopyProperties(*this);

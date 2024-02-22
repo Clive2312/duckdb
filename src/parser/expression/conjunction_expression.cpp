@@ -42,6 +42,10 @@ string ConjunctionExpression::ToString() const {
 	return ToString<ConjunctionExpression, ParsedExpression>(*this);
 }
 
+string ConjunctionExpression::ToXMLString() const {
+	return "";
+}
+
 bool ConjunctionExpression::Equal(const ConjunctionExpression &a, const ConjunctionExpression &b) {
 	return ExpressionUtil::SetEquals(a.children, b.children);
 }

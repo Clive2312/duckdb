@@ -64,6 +64,18 @@ string ColumnRefExpression::ToString() const {
 	return result;
 }
 
+string ColumnRefExpression::ToXMLString() const {
+	string result = "<column_ref>";
+	for (idx_t i = 0; i < column_names.size(); i++) {
+		if (i > 0) {
+			result += ".";
+		}
+		result += KeywordHelper::WriteOptionallyQuoted(column_names[i]);
+	}
+	result += "</column_ref>";
+	return result;
+}
+
 bool ColumnRefExpression::Equal(const ColumnRefExpression &a, const ColumnRefExpression &b) {
 	if (a.column_names.size() != b.column_names.size()) {
 		return false;

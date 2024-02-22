@@ -26,6 +26,10 @@ CommonTableExpressionMap CommonTableExpressionMap::Copy() const {
 	return res;
 }
 
+string CommonTableExpressionMap::ToXMLString() const {
+	return "";
+}
+
 string CommonTableExpressionMap::ToString() const {
 	if (map.empty()) {
 		return string();

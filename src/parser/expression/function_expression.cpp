@@ -37,6 +37,10 @@ string FunctionExpression::ToString() const {
 	                                                      filter.get(), order_bys.get(), export_state, true);
 }
 
+string FunctionExpression::ToXMLString() const {
+	return "";
+}
+
 bool FunctionExpression::Equal(const FunctionExpression &a, const FunctionExpression &b) {
 	if (a.catalog != b.catalog || a.schema != b.schema || a.function_name != b.function_name ||
 	    b.distinct != a.distinct) {

@@ -19,6 +19,10 @@ string CastExpression::ToString() const {
 	return ToString<CastExpression, ParsedExpression>(*this);
 }
 
+string CastExpression::ToXMLString() const {
+	return "";
+}
+
 bool CastExpression::Equal(const CastExpression &a, const CastExpression &b) {
 	if (!a.child->Equals(*b.child)) {
 		return false;

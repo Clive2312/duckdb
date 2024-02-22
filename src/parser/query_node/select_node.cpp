@@ -10,7 +10,26 @@ namespace duckdb {
 SelectNode::SelectNode()
     : QueryNode(QueryNodeType::SELECT_NODE), aggregate_handling(AggregateHandling::STANDARD_HANDLING) {
 }
-
+string SelectNode::ToXMLString() const {
+	string result;
+	result = "<select_statement>" + cte_map.ToXMLString() + "<select_node>";
+	for (idx_t i = 0; i < select_list.size(); i++) {
+		result += select_list[i]->ToXMLString();
+	}
+	result += "</select_node>";
+	if (from_table && from_table->type != TableReferenceType::EMPTY) {
+		result += "<from_node>"+ from_table->ToXMLString() + "</from_node>";
+	}
+	if (where_clause) {
+		result += "<where_node>" + where_clause->ToXMLString() + "</where_node>";
+	}
+	// result += "<group_by_node>";
+	// result += "</group_by_node>";
+	// result += "<having_node>";
+	// result += "</having_node>";
+	result += "</select_statement>";
+	return result;
+}
 string SelectNode::ToString() const {
 	string result;
 	result = cte_map.ToString();

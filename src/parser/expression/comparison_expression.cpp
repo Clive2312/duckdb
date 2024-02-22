@@ -18,6 +18,10 @@ string ComparisonExpression::ToString() const {
 	return ToString<ComparisonExpression, ParsedExpression>(*this);
 }
 
+string ComparisonExpression::ToXMLString() const {
+	return ToXMLString<ComparisonExpression>(*this);
+}
+
 bool ComparisonExpression::Equal(const ComparisonExpression &a, const ComparisonExpression &b) {
 	if (!a.left->Equals(*b.left)) {
 		return false;

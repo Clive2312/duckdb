@@ -252,6 +252,33 @@ string ExpressionTypeToOperator(ExpressionType type) {
 	}
 }
 
+string ExpressionTypeToXML(ExpressionType type) {
+	switch (type) {
+	case ExpressionType::COMPARE_EQUAL:
+		return "EQ";
+	case ExpressionType::COMPARE_NOTEQUAL:
+		return "NEQ";
+	case ExpressionType::COMPARE_LESSTHAN:
+		return "LT";
+	case ExpressionType::COMPARE_GREATERTHAN:
+		return "RT";
+	case ExpressionType::COMPARE_LESSTHANOREQUALTO:
+		return "LEQ";
+	case ExpressionType::COMPARE_GREATERTHANOREQUALTO:
+		return "REQ";
+	case ExpressionType::COMPARE_DISTINCT_FROM:
+		return "IS DISTINCT FROM";
+	case ExpressionType::COMPARE_NOT_DISTINCT_FROM:
+		return "IS NOT DISTINCT FROM";
+	case ExpressionType::CONJUNCTION_AND:
+		return "AND";
+	case ExpressionType::CONJUNCTION_OR:
+		return "OR";
+	default:
+		return "";
+	}
+}
+
 ExpressionType NegateComparisonExpression(ExpressionType type) {
 	ExpressionType negated_type = ExpressionType::INVALID;
 	switch (type) {
