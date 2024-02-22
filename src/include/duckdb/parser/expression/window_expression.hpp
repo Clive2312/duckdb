@@ -69,6 +69,7 @@ public:
 
 	//! Convert the Expression to a String
 	string ToString() const override;
+	string ToXMLString() const override;
 
 	static bool Equal(const WindowExpression &a, const WindowExpression &b);
 

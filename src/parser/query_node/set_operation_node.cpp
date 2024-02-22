@@ -6,6 +6,9 @@
 
 namespace duckdb {
 
+string SetOperationNode::ToXMLString() const {
+	return "";
+}
 string SetOperationNode::ToString() const {
 	string result;
 	result = cte_map.ToString();

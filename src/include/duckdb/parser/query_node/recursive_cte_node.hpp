@@ -38,6 +38,8 @@ public:
 public:
 	//! Convert the query node to a string
 	string ToString() const override;
+	//! Convert the query node to a xml string
+	string ToXMLString() const override;
 
 	bool Equals(const QueryNode *other) const override;
 	//! Create a copy of this SelectNode

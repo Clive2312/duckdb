@@ -6,6 +6,10 @@
 
 namespace duckdb {
 
+string ExpressionListRef::ToXMLString() const {
+	return "";
+}
+
 string ExpressionListRef::ToString() const {
 	D_ASSERT(!values.empty());
 	string result = "(VALUES ";

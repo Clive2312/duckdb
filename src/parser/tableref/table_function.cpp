@@ -9,6 +9,10 @@ namespace duckdb {
 TableFunctionRef::TableFunctionRef() : TableRef(TableReferenceType::TABLE_FUNCTION) {
 }
 
+string TableFunctionRef::ToXMLString() const {
+	return "";
+}
+
 string TableFunctionRef::ToString() const {
 	return BaseToString(function->ToString(), column_name_alias);
 }

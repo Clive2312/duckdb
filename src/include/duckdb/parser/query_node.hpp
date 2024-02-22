@@ -38,6 +38,7 @@ public:
 
 public:
 	string ToString() const;
+	string ToXMLString() const;
 	CommonTableExpressionMap Copy() const;
 
 	void FormatSerialize(FormatSerializer &serializer) const;
@@ -64,6 +65,8 @@ public:
 public:
 	//! Convert the query node to a string
 	virtual string ToString() const = 0;
+
+	virtual string ToXMLString() const = 0;
 
 	virtual bool Equals(const QueryNode *other) const;
 

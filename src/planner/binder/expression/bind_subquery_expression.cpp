@@ -29,6 +29,9 @@ public:
 	string ToString() const override {
 		throw InternalException("Cannot ToString bound subquery node");
 	}
+	string ToXMLString() const override {
+		throw InternalException("Cannot ToXMLString bound subquery node");
+	}
 	unique_ptr<QueryNode> Copy() const override {
 		throw InternalException("Cannot copy bound subquery node");
 	}

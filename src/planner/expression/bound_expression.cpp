@@ -22,6 +22,13 @@ string BoundExpression::ToString() const {
 	return expr->ToString();
 }
 
+string BoundExpression::ToXMLString() const {
+	if (!expr) {
+		throw InternalException("ToXMLString(): BoundExpression does not have a child");
+	}
+	return "";
+}
+
 bool BoundExpression::Equals(const BaseExpression &other) const {
 	return false;
 }

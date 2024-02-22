@@ -34,6 +34,7 @@ public:
 
 public:
 	string ToString() const override;
+	string ToXMLString() const override;
 
 	static bool Equal(const CaseExpression &a, const CaseExpression &b);
 

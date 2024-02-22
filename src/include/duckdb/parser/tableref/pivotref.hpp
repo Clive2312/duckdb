@@ -48,6 +48,7 @@ struct PivotColumn {
 	unique_ptr<QueryNode> subquery;
 
 	string ToString() const;
+	string ToXMLString() const;
 	bool Equals(const PivotColumn &other) const;
 	void Serialize(Serializer &serializer) const;
 	PivotColumn Copy() const;
@@ -89,6 +90,7 @@ public:
 
 public:
 	string ToString() const override;
+	string ToXMLString() const override;
 	bool Equals(const TableRef &other_p) const override;
 
 	unique_ptr<TableRef> Copy() override;

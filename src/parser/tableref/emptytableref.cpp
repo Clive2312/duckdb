@@ -8,6 +8,10 @@ string EmptyTableRef::ToString() const {
 	return "";
 }
 
+string EmptyTableRef::ToXMLString() const {
+	return ToString();
+}
+
 bool EmptyTableRef::Equals(const TableRef &other) const {
 	return TableRef::Equals(other);
 }

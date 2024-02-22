@@ -29,6 +29,7 @@ public:
 	}
 
 	string ToString() const override;
+	string ToXMLString() const override;
 
 	static bool Equal(const ParameterExpression &a, const ParameterExpression &b);
 

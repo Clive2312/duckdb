@@ -26,6 +26,7 @@ public:
 
 public:
 	string ToString() const override;
+	string ToXMLString() const override;
 
 	static bool Equal(const ComparisonExpression &a, const ComparisonExpression &b);
 
@@ -41,6 +42,11 @@ public:
 	static string ToString(const T &entry) {
 		return StringUtil::Format("(%s %s %s)", entry.left->ToString(), ExpressionTypeToOperator(entry.type),
 		                          entry.right->ToString());
+	}
+	template <class T>
+	static string ToXMLString(const T &entry) {
+		return StringUtil::Format("<comp_expr type=\"%s\"><left_expr>%s</left_expr><right_expr>%s</right_expr></comp_expr>", ExpressionTypeToXML(entry.type),
+								entry.left->ToXMLString(), entry.right->ToXMLString());
 	}
 };
 } // namespace duckdb

@@ -45,4 +45,8 @@ string SelectStatement::ToString() const {
 	return node->ToString();
 }
 
+string SelectStatement::ToXMLString() const {
+	return node->ToXMLString();
+}
+
 } // namespace duckdb

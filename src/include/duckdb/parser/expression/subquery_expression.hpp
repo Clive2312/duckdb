@@ -41,6 +41,7 @@ public:
 	}
 
 	string ToString() const override;
+	string ToXMLString() const override;
 
 	static bool Equal(const SubqueryExpression &a, const SubqueryExpression &b);
 

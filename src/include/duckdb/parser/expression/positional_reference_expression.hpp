@@ -26,6 +26,7 @@ public:
 	}
 
 	string ToString() const override;
+	string ToXMLString() const override;
 
 	static bool Equal(const PositionalReferenceExpression &a, const PositionalReferenceExpression &b);
 	unique_ptr<ParsedExpression> Copy() const override;

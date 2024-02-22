@@ -15,6 +15,10 @@ string BaseTableRef::ToString() const {
 	return BaseToString(result, column_name_alias);
 }
 
+string BaseTableRef::ToXMLString() const {
+	return ToString();
+}
+
 bool BaseTableRef::Equals(const TableRef &other_p) const {
 	if (!TableRef::Equals(other_p)) {
 		return false;

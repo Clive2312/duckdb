@@ -7,6 +7,10 @@
 
 namespace duckdb {
 
+string JoinRef::ToXMLString() const {
+	return "";
+}
+
 string JoinRef::ToString() const {
 	string result;
 	result = left->ToString() + " ";

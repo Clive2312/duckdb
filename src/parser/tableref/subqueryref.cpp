@@ -12,6 +12,10 @@ string SubqueryRef::ToString() const {
 	return BaseToString(result, column_name_alias);
 }
 
+string SubqueryRef::ToXMLString() const {
+	return "";
+}
+
 SubqueryRef::SubqueryRef(unique_ptr<SelectStatement> subquery_p, string alias_p)
     : TableRef(TableReferenceType::SUBQUERY), subquery(std::move(subquery_p)) {
 	this->alias = std::move(alias_p);

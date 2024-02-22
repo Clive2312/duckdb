@@ -202,6 +202,7 @@ enum class ExpressionClass : uint8_t {
 
 DUCKDB_API string ExpressionTypeToString(ExpressionType type);
 string ExpressionTypeToOperator(ExpressionType type);
+string ExpressionTypeToXML(ExpressionType type);
 
 // Operator String to ExpressionType (e.g. + => OPERATOR_ADD)
 ExpressionType OperatorToExpressionType(const string &op);

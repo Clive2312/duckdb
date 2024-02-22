@@ -16,6 +16,10 @@ string RecursiveCTENode::ToString() const {
 	return result;
 }
 
+string RecursiveCTENode::ToXMLString() const {
+	return "";
+}
+
 bool RecursiveCTENode::Equals(const QueryNode *other_p) const {
 	if (!QueryNode::Equals(other_p)) {
 		return false;

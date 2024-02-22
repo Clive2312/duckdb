@@ -32,6 +32,7 @@ public:
 
 public:
 	string ToString() const override;
+	string ToXMLString() const override;
 
 	static bool Equal(const LambdaExpression &a, const LambdaExpression &b);
 	hash_t Hash() const override;

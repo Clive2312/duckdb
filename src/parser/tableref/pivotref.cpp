@@ -10,6 +10,10 @@ namespace duckdb {
 //===--------------------------------------------------------------------===//
 // PivotColumn
 //===--------------------------------------------------------------------===//
+string PivotColumn::ToXMLString() const {
+	return "";
+}
+
 string PivotColumn::ToString() const {
 	string result;
 	if (!unpivot_names.empty()) {
@@ -203,6 +207,9 @@ PivotColumnEntry PivotColumnEntry::FormatDeserialize(FormatDeserializer &source)
 //===--------------------------------------------------------------------===//
 // PivotRef
 //===--------------------------------------------------------------------===//
+string PivotRef::ToXMLString() const {
+	return "";
+}
 string PivotRef::ToString() const {
 	string result;
 	result = source->ToString();

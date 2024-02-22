@@ -53,6 +53,9 @@ public:
 	//! Create a copy of this expression
 	virtual unique_ptr<ParsedExpression> Copy() const = 0;
 
+	//! Convert the Expression to a XML String
+	virtual string ToXMLString() const = 0;
+	
 	//! Serializes an Expression to a stand-alone binary blob
 	void Serialize(Serializer &serializer) const;
 	//! Serializes an Expression to a stand-alone binary blob

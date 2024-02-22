@@ -27,6 +27,8 @@ public:
 
 public:
 	string ToString() const override;
+	
+	string ToXMLString() const override;
 
 	static bool Equal(const CollateExpression &a, const CollateExpression &b);
 

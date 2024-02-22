@@ -50,6 +50,7 @@ public:
 
 public:
 	string ToString() const override;
+	string ToXMLString() const override;
 
 	unique_ptr<ParsedExpression> Copy() const override;
 

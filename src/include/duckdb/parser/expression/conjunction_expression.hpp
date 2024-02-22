@@ -30,6 +30,7 @@ public:
 	void AddExpression(unique_ptr<ParsedExpression> expr);
 
 	string ToString() const override;
+	string ToXMLString() const override;
 
 	static bool Equal(const ConjunctionExpression &a, const ConjunctionExpression &b);
 
