@@ -22,6 +22,11 @@ class PendingQueryResult : public BaseQueryResult {
 
 public:
 	static constexpr const QueryResultType TYPE = QueryResultType::PENDING_RESULT;
+			
+	//! Policy queries to run before returning the final result
+	string policies;
+	//! Vector containing the list of checker functions to run
+	vector<std::function<void(unique_ptr<QueryResult>)>> checkers;
 
 public:
 	DUCKDB_API PendingQueryResult(shared_ptr<ClientContext> context, PreparedStatementData &statement,

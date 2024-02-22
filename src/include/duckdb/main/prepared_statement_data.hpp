@@ -45,6 +45,12 @@ public:
 	//! The catalog version of when the prepared statement was bound
 	//! If this version is lower than the current catalog version, we have to rebind the prepared statement
 	idx_t catalog_version;
+	
+	//! Policy queries to run before returning the final result
+	string policies;
+	//! Vector containing the list of checker functions to run
+	vector<std::function<void(unique_ptr<QueryResult>)>> checkers;
+
 
 public:
 	void CheckParameterCount(idx_t parameter_count);
