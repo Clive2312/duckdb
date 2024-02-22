@@ -55,7 +55,7 @@ add_library_unity(
   state_var.cpp
   tree_renderer.cpp
   types.cpp
-  tinyxml2.cpp
+  pugixml.cpp
   virtual_file_system.cpp
   windows_util.cpp)
 set(ALL_OBJECT_FILES
