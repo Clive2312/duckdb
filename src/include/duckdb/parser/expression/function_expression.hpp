@@ -121,5 +121,67 @@ public:
 
 		return result;
 	}
+
+	template <class T, class BASE, class ORDER_MODIFIER = OrderModifier>
+	static string ToXMLString(const T &entry, const string &schema, const string &function_name, bool is_operator = false,
+	                       bool distinct = false, BASE *filter = nullptr, ORDER_MODIFIER *order_bys = nullptr,
+	                       bool export_state = false, bool add_alias = false) {
+		
+		string func_name = function_name;
+		string args = StringUtil::Join(entry.children, entry.children.size(), ", ", [&](const unique_ptr<BASE> &child) {
+			return child->alias.empty() || !add_alias
+			           ? child->ToString()
+			           : StringUtil::Format("%s := %s", SQLIdentifier(child->alias), child->ToString());
+		});
+		if (is_operator) {
+			// built-in operator
+			D_ASSERT(!distinct);
+			if (StringUtil::Contains(func_name, "__postfix")) {
+				func_name = StringUtil::Replace(func_name, "__postfix", "");
+			} 
+			if (entry.children.size() == 1) {
+				return StringUtil::Format("<func_expr name=\"%s\"> %s </func_expr>)", 
+											func_name, entry.children[0]->ToXMLString());
+			} else if (entry.children.size() == 2) {
+				return StringUtil::Format("<func_expr name=\"%s\"> %s %s </func_expr>)", func_name, 
+											entry.children[0]->ToXMLString(), entry.children[1]->ToXMLString());
+			}
+		}
+		// standard function call
+		func_name = schema.empty() ? function_name : schema + "." + function_name;
+		
+		string result = StringUtil::Format("<func_expr name=\"%s\" distinct=\"%d\">", func_name, distinct);
+		result += StringUtil::Join(entry.children, entry.children.size(), ", ", [&](const unique_ptr<BASE> &child) {
+			return child->alias.empty() || !add_alias
+			           ? child->ToXMLString()
+			           : StringUtil::Format("%s := %s", SQLIdentifier(child->alias), child->ToXMLString());
+		});
+		result += "</func_expr>";
+		// // ordered aggregate
+		// if (order_bys && !order_bys->orders.empty()) {
+		// 	if (entry.children.empty()) {
+		// 		result += ") WITHIN GROUP (";
+		// 	}
+		// 	result += " ORDER BY ";
+		// 	for (idx_t i = 0; i < order_bys->orders.size(); i++) {
+		// 		if (i > 0) {
+		// 			result += ", ";
+		// 		}
+		// 		result += order_bys->orders[i].ToString();
+		// 	}
+		// }
+		// result += ")";
+
+		// // filtered aggregate
+		// if (filter) {
+		// 	result += " FILTER (WHERE " + filter->ToString() + ")";
+		// }
+
+		// if (export_state) {
+		// 	result += " EXPORT_STATE";
+		// }
+
+		return result;
+	}
 };
 } // namespace duckdb

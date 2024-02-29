@@ -38,7 +38,8 @@ string FunctionExpression::ToString() const {
 }
 
 string FunctionExpression::ToXMLString() const {
-	return "";
+	return ToXMLString<FunctionExpression, ParsedExpression>(*this, schema, function_name, is_operator, distinct,
+	                                                      filter.get(), order_bys.get(), export_state, true);
 }
 
 bool FunctionExpression::Equal(const FunctionExpression &a, const FunctionExpression &b) {
