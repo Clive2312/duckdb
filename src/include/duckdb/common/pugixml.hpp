@@ -691,7 +691,8 @@ namespace pugi
 		PUGIXML_DEPRECATED xpath_node select_single_node(const xpath_query& query) const;
 
 	#endif
-
+		void nodeToSQL(std::basic_ostream<char>& os, xml_encoding encoding = encoding_auto) const;
+		void nodeToSQL(xml_writer& writer, xml_encoding encoding) const;
 		// Print subtree using a writer object
 		void print(xml_writer& writer, const char_t* indent = PUGIXML_TEXT("\t"), unsigned int flags = format_default, xml_encoding encoding = encoding_auto, unsigned int depth = 0) const;
 

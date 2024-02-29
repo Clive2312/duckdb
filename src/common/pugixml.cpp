@@ -4410,6 +4410,8 @@ PUGI_IMPL_NS_BEGIN
 
 	PUGI_IMPL_FN void expr_to_sql(xml_buffered_writer& writer, xml_node& expr)
 	{
+		if(!expr) return;
+
 		if(expr.child("column_ref")) {
 			xml_node column_ref = expr.child("column_ref");
 			writer.write_string(column_ref.text().as_string());
@@ -4427,6 +4429,18 @@ PUGI_IMPL_NS_BEGIN
 			comp_expr_to_sql(writer, comp_expr);
 		}
 		return;
+	}
+
+	PUGI_IMPL_FN void table_ref_to_sql(xml_buffered_writer& writer, xml_node& table_ref)
+	{
+		if(!table_ref) return;
+
+		xml_attribute _type = table_ref.attribute("type");
+		if(strequal(_type.as_string(), "base_table")) {
+			writer.write('\'');
+			writer.write_string(table_ref.text().as_string());
+			writer.write('\'');
+		}
 	}
 
 	PUGI_IMPL_FN void comp_expr_to_sql(xml_buffered_writer& writer, xml_node& comp_expr)
@@ -4472,11 +4486,8 @@ PUGI_IMPL_NS_BEGIN
 
 		writer.write_string(" FROM ");
 
-		if(!from_node.text().empty()) {
-			writer.write('\'');
-			writer.write_string(from_node.text().as_string());
-			writer.write('\'');
-		}
+		xml_node table_ref = from_node.child("table_ref");
+		table_ref_to_sql(writer, table_ref);
 	}
 
 	PUGI_IMPL_FN void where_node_to_sql(xml_buffered_writer& writer, xml_node& where_node)
@@ -6658,6 +6669,51 @@ namespace pugi
 	PUGI_IMPL_FN xml_node_struct* xml_node::internal_object() const
 	{
 		return _root;
+	}
+
+	PUGI_IMPL_FN void xml_node::nodeToSQL(xml_writer& writer, xml_encoding encoding) const
+	{
+		impl::xml_buffered_writer buffered_writer(writer, encoding);
+
+		xml_node node = *this;
+		const char_t* _name = node.name(); 
+
+		if(impl::strequal("select_node", _name))
+		{
+			impl::select_node_to_sql(buffered_writer, node);
+		}
+		if(impl::strequal("from_node", _name))
+		{
+			impl::from_node_to_sql(buffered_writer, node);
+		}
+		if(impl::strequal("where_node", _name))
+		{
+			impl::where_node_to_sql(buffered_writer, node);
+		}
+		if(impl::strequal("func_expr", _name))
+		{
+			impl::func_expr_to_sql(buffered_writer, node);
+		}
+		if( impl::strequal("column_ref", _name) || 
+			impl::strequal("const_expr", _name) ||
+			impl::strequal("comp_expr", _name) )
+		{
+			xml_node parent = node.parent();
+			impl::expr_to_sql(buffered_writer, parent);
+		}
+		if(impl::strequal("table_ref", _name))
+		{
+			impl::table_ref_to_sql(buffered_writer, node);
+		}
+
+		buffered_writer.flush();
+	}
+	
+	PUGI_IMPL_FN void xml_node::nodeToSQL(std::basic_ostream<char>& stream, xml_encoding encoding) const
+	{
+		xml_writer_stream writer(stream);
+
+		nodeToSQL(writer, encoding);
 	}
 
 	PUGI_IMPL_FN void xml_node::print(xml_writer& writer, const char_t* indent, unsigned int flags, xml_encoding encoding, unsigned int depth) const
