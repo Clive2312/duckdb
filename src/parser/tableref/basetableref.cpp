@@ -16,7 +16,7 @@ string BaseTableRef::ToString() const {
 }
 
 string BaseTableRef::ToXMLString() const {
-	return ToString();
+	return "<table_ref type=\"base_table\">" + ToString() + "</table_ref>";
 }
 
 bool BaseTableRef::Equals(const TableRef &other_p) const {
