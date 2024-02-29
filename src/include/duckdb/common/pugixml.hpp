@@ -1096,11 +1096,15 @@ namespace pugi
 
 		// Save XML document to writer (semantics is slightly different from xml_node::print, see documentation for details).
 		void save(xml_writer& writer, const char_t* indent = PUGIXML_TEXT("\t"), unsigned int flags = format_default, xml_encoding encoding = encoding_auto) const;
-
+		
+		// Convert the XML document into SQL statement
+		void toSQL(xml_writer& writer, xml_encoding encoding) const;
+	
 	#ifndef PUGIXML_NO_STL
 		// Save XML document to stream (semantics is slightly different from xml_node::print, see documentation for details).
 		void save(std::basic_ostream<char>& stream, const char_t* indent = PUGIXML_TEXT("\t"), unsigned int flags = format_default, xml_encoding encoding = encoding_auto) const;
 		void save(std::basic_ostream<wchar_t>& stream, const char_t* indent = PUGIXML_TEXT("\t"), unsigned int flags = format_default) const;
+		void toSQL(std::basic_ostream<char>& stream, xml_encoding encoding = encoding_auto) const;
 	#endif
 
 		// Save XML to file

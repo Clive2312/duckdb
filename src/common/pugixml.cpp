@@ -4380,6 +4380,125 @@ PUGI_IMPL_NS_BEGIN
 		if ((indent_flags & indent_newline) && (flags & format_raw) == 0)
 			writer.write('\n');
 	}
+	PUGI_IMPL_FN void comp_expr_to_sql(xml_buffered_writer& writer, xml_node& comp_expr);
+
+	PUGI_IMPL_FN void const_type_to_sql(xml_buffered_writer& writer, xml_text& text, xml_attribute& const_type)
+	{
+		if(strequal(const_type.value(), "INTEGER"))
+		{
+			writer.write_string(text.as_string());
+		}
+		if(strequal(const_type.value(), "VARCHAR"))
+		{
+			writer.write_string(text.as_string());
+		}
+	}
+
+	PUGI_IMPL_FN void comp_type_to_sql(xml_buffered_writer& writer, xml_attribute& comp_type)
+	{
+		if(strequal(comp_type.value(), "RT"))
+		{
+			writer.write_string(" > ");
+		}
+		if(strequal(comp_type.value(), "LT"))
+		{
+			writer.write_string(" < ");
+		}
+
+		return;
+	}
+
+	PUGI_IMPL_FN void expr_to_sql(xml_buffered_writer& writer, xml_node& expr)
+	{
+		if(expr.child("column_ref")) {
+			xml_node column_ref = expr.child("column_ref");
+			writer.write_string(column_ref.text().as_string());
+		}
+
+		if(expr.child("const_expr")) {
+			xml_node const_expr = expr.child("const_expr");
+			xml_attribute const_type = const_expr.attribute("type");
+			xml_text text = const_expr.text();
+			const_type_to_sql(writer, text, const_type);
+		}
+
+		if(expr.child("comp_expr")) {
+			xml_node comp_expr = expr.child("comp_expr");
+			comp_expr_to_sql(writer, comp_expr);
+		}
+		return;
+	}
+
+	PUGI_IMPL_FN void comp_expr_to_sql(xml_buffered_writer& writer, xml_node& comp_expr)
+	{
+		if(!comp_expr) return;
+
+		xml_node left_expr = comp_expr.child("left_expr");
+		xml_node right_expr = comp_expr.child("right_expr");
+		xml_attribute comp_type = comp_expr.attribute("type");
+
+		expr_to_sql(writer, left_expr);
+		comp_type_to_sql(writer, comp_type);
+		expr_to_sql(writer, right_expr);
+	}
+
+	PUGI_IMPL_FN void func_expr_to_sql(xml_buffered_writer& writer, xml_node& func_expr)
+	{
+		if(!func_expr) return;
+
+		writer.write_string(func_expr.attribute("name").as_string());
+		writer.write('(');
+		expr_to_sql(writer, func_expr);
+		writer.write(')');
+	}
+
+	PUGI_IMPL_FN void select_node_to_sql(xml_buffered_writer& writer, xml_node& select_node)
+	{
+		if(!select_node) return;
+
+		writer.write_string("SELECT ");
+		if(select_node.text()) {
+			writer.write_string(select_node.text().as_string());
+		}
+		if(select_node.child("func_expr")) {
+			xml_node func_expr = select_node.child("func_expr");
+			func_expr_to_sql(writer, func_expr);
+		}
+	}
+
+	PUGI_IMPL_FN void from_node_to_sql(xml_buffered_writer& writer, xml_node& from_node)
+	{
+		if(!from_node) return;
+
+		writer.write_string(" FROM ");
+
+		if(!from_node.text().empty()) {
+			writer.write('\'');
+			writer.write_string(from_node.text().as_string());
+			writer.write('\'');
+		}
+	}
+
+	PUGI_IMPL_FN void where_node_to_sql(xml_buffered_writer& writer, xml_node& where_node)
+	{
+		if(!where_node) return;
+
+		writer.write_string(" WHERE ");
+
+		xml_node comp_expr = where_node.child("comp_expr");
+		comp_expr_to_sql(writer, comp_expr);
+	}
+
+	PUGI_IMPL_FN void statement_to_sql(xml_buffered_writer& writer, xml_node select_statement) 
+	{
+		xml_node select_node = select_statement.child("select_node");
+		xml_node from_node = select_statement.child("from_node");
+		xml_node where_node = select_statement.child("where_node");
+
+		select_node_to_sql(writer, select_node);
+		from_node_to_sql(writer, from_node);
+		where_node_to_sql(writer, where_node);
+	}
 
 	PUGI_IMPL_FN bool has_declaration(xml_node_struct* node)
 	{
@@ -7448,6 +7567,16 @@ namespace pugi
 		return impl::load_buffer_impl(static_cast<impl::xml_document_struct*>(_root), _root, contents, size, options, encoding, true, true, &_buffer);
 	}
 
+	PUGI_IMPL_FN void xml_document::toSQL(xml_writer& writer, xml_encoding encoding) const
+	{
+		impl::xml_buffered_writer buffered_writer(writer, encoding);
+		
+		xml_node select_statement = child("select_statement");
+		impl::statement_to_sql(buffered_writer, select_statement);
+
+		buffered_writer.flush();
+	}
+
 	PUGI_IMPL_FN void xml_document::save(xml_writer& writer, const char_t* indent, unsigned int flags, xml_encoding encoding) const
 	{
 		impl::xml_buffered_writer buffered_writer(writer, encoding);
@@ -7490,6 +7619,13 @@ namespace pugi
 
 		save(writer, indent, flags, encoding_wchar);
 	}
+
+	PUGI_IMPL_FN void xml_document::toSQL(std::basic_ostream<char>& stream, xml_encoding encoding) const
+	{
+		xml_writer_stream writer(stream);
+		toSQL(writer, encoding);
+	}
+
 #endif
 
 	PUGI_IMPL_FN bool xml_document::save_file(const char* path_, const char_t* indent, unsigned int flags, xml_encoding encoding) const
