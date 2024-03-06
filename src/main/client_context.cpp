@@ -12,6 +12,7 @@
 #include "duckdb/common/serializer/buffered_serializer.hpp"
 #include "duckdb/common/types/column/column_data_collection.hpp"
 #include "duckdb/common/json/json.h"
+#include "duckdb/common/pugixml.hpp"
 #include "duckdb/execution/column_binding_resolver.hpp"
 #include "duckdb/execution/operator/helper/physical_result_collector.hpp"
 #include "duckdb/execution/physical_plan_generator.hpp"
@@ -324,6 +325,14 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 		}
 	}
 
+	if(allow_policy_checker && statement->type == StatementType::SELECT_STATEMENT) {
+		profiler.StartPhase("policy_checker");
+
+		Analyzer analyzer(*statement);
+		result->policies = analyzer.getPolicies();
+		profiler.EndPhase();
+	}
+
 	client_data->http_state = make_shared<HTTPState>();
 	planner.CreatePlan(std::move(statement));
 	D_ASSERT(planner.plan || !planner.properties.bound_all_parameters);
@@ -336,27 +345,6 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 	result->types = planner.types;
 	result->value_map = std::move(planner.value_map);
 	result->catalog_version = MetaTransaction::Get(*this).catalog_version;
-
-	if(allow_policy_checker) {
-		profiler.StartPhase("policy_checker");
-		Analyzer analyzer;
-		plan = analyzer.modifiedPlan(std::move(plan));
-		plan->Print();
-
-		// Value policyfile;
-		// ClientContext::TryGetCurrentSetting("policy_file", policyfile);
-
-		// if (!policyfile.IsNull()) {
-		// 	std::ifstream handle(policyfile.ToString());
-		// 	Json::Reader reader;
-		// 	Json::Value completeJson;
-		// 	reader.parse(handle, completeJson);
-		// 	Analyzer analyzer(completeJson);
-		// 	plan = analyzer.MatchAndInsertPolicies(std::move(plan));
-			// plan->Print();
-		// }
-		profiler.EndPhase();
-	}
 
 	if (!planner.properties.bound_all_parameters) {
 		return result;
@@ -815,17 +803,14 @@ unique_ptr<QueryResult> ClientContext::Query(unique_ptr<SQLStatement> statement,
 	return pending_query->Execute();
 }
 
-void ClientContext::PolicyChecking(ClientContextLock &lock, string policies, vector<std::function<void(unique_ptr<QueryResult>)>> &checkers) {
+void ClientContext::PolicyChecking(ClientContextLock &lock, string policies) {
 	vector<unique_ptr<SQLStatement>> policy_statements;
 	PreservedError error;
 	if (!ParseStatements(lock, policies, policy_statements, error) || policy_statements.empty()) {
 		return ;
 	}
-	D_ASSERT(policy_statements.size() == checkers.size());
-
 	for(idx_t i = 0; i < policy_statements.size(); i++) {
 		auto &policy = policy_statements[i];
-		auto &checker = checkers[i];
 		PendingQueryParameters parameters;
 		auto pending_query = PendingQueryInternal(lock, std::move(policy), parameters);
 		unique_ptr<QueryResult> current_result;
@@ -833,7 +818,12 @@ void ClientContext::PolicyChecking(ClientContextLock &lock, string policies, vec
 			current_result = make_uniq<MaterializedQueryResult>(pending_query->GetErrorObject());
 		} else {
 			current_result = ExecutePendingQueryInternal(lock, *pending_query);
-			checker(std::move(current_result));
+			auto check = current_result->begin().current_row.template GetValue<bool>(0);
+			if(check)
+				std::cout<<"Policy check passed!"<<std::endl;
+			else {
+        		throw std::domain_error("Policy check failed!\n");
+			}
 		}
 	}
 	return;
@@ -872,6 +862,9 @@ unique_ptr<QueryResult> ClientContext::Query(const string &query, bool allow_str
 			current_result = make_uniq<MaterializedQueryResult>(pending_query->GetErrorObject());
 		} else {
 			current_result = ExecutePendingQueryInternal(*lock, *pending_query);
+		}
+		if(pending_query->policies.size() > 0) {
+			PolicyChecking(*lock, pending_query->policies);
 		}
 		// now append the result to the list of results
 		if (!last_result || !last_had_result) {
