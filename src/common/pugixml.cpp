@@ -4388,7 +4388,11 @@ PUGI_IMPL_NS_BEGIN
 		{
 			writer.write_string(text.as_string());
 		}
-		if(strequal(const_type.value(), "VARCHAR"))
+		if(strequal(const_type.value(), "VARCHAR")) // Revisit
+		{
+			writer.write_string(text.as_string());
+		}
+		if(strequal(const_type.value(), "DECIMAL"))
 		{
 			writer.write_string(text.as_string());
 		}
@@ -4451,9 +4455,11 @@ PUGI_IMPL_NS_BEGIN
 		xml_node right_expr = comp_expr.child("right_expr");
 		xml_attribute comp_type = comp_expr.attribute("type");
 
+		writer.write('(');
 		expr_to_sql(writer, left_expr);
 		comp_type_to_sql(writer, comp_type);
 		expr_to_sql(writer, right_expr);
+		writer.write(')');
 	}
 
 	PUGI_IMPL_FN void func_expr_to_sql(xml_buffered_writer& writer, xml_node& func_expr)
