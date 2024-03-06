@@ -1,0 +1,13 @@
+[{
+    "match": "//func_expr[@name='sum']/column_ref[text()='rating']",
+    "$a": "//from_node/*",
+    "$b": "//where_node/*",
+    "policy_sql": "SELECT CASE WHEN Count(*) > 50 THEN 1 ELSE 0 END FROM $a WHERE $b;"
+},
+{
+    "match": "//select_statement[group_by_node][from_node//table_ref/text()='trade']",
+    "$a": "//select_statement[group_by_node]/from_node[//table_ref/text()='trade']/*",
+    "$b": "//select_statement[group_by_node][from_node//table_ref/text()='trade']/where_node/*",
+    "$c": "//select_statement[from_node//table_ref/text()='trade']/group_by_node/*",
+    "policy_sql": "SELECT Count(*) FROM $a WHERE $b GROUP BY $c;"
+}]
