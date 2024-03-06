@@ -9,6 +9,7 @@ PendingQueryResult::PendingQueryResult(shared_ptr<ClientContext> context_p, Prep
     : BaseQueryResult(QueryResultType::PENDING_RESULT, statement.statement_type, statement.properties,
                       std::move(types_p), statement.names),
       context(std::move(context_p)), allow_stream_result(allow_stream_result) {
+		policies = statement.policies;
 }
 
 PendingQueryResult::PendingQueryResult(PreservedError error)
