@@ -23,8 +23,25 @@ string SelectNode::ToXMLString() const {
 	if (where_clause) {
 		result += "<where_node>" + where_clause->ToXMLString() + "</where_node>";
 	}
-	// result += "<group_by_node>";
-	// result += "</group_by_node>";
+	if (!groups.grouping_sets.empty()) {
+		bool grouping_sets = groups.grouping_sets.size() > 1;
+		result += "<group_by_node>";
+		
+		for (idx_t i = 0; i < groups.grouping_sets.size(); i++) {
+			result += "<group_set>";
+			auto &grouping_set = groups.grouping_sets[i];
+			for (auto &grp : grouping_set) {
+				result += groups.group_expressions[grp]->ToXMLString();
+			}
+			result += "</group_set>";
+
+		}
+		result += "</group_by_node>";
+	} else if (aggregate_handling == AggregateHandling::FORCE_AGGREGATES) {
+		result += "<group_by_node type=\"all\">";
+		result += "</group_by_node>";
+	}
+		
 	// result += "<having_node>";
 	// result += "</having_node>";
 	result += "</select_statement>";
