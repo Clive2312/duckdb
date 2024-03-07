@@ -4416,22 +4416,31 @@ PUGI_IMPL_NS_BEGIN
 	{
 		if(!expr) return;
 
-		if(expr.child("column_ref")) {
-			xml_node column_ref = expr.child("column_ref");
-			writer.write_string(column_ref.text().as_string());
+		if(strequal(expr.name(), "column_ref")) {
+			writer.write_string(expr.text().as_string());
 		}
 
-		if(expr.child("const_expr")) {
-			xml_node const_expr = expr.child("const_expr");
-			xml_attribute const_type = const_expr.attribute("type");
-			xml_text text = const_expr.text();
+		if(strequal(expr.name(), "const_expr")) {
+			xml_attribute const_type = expr.attribute("type");
+			xml_text text = expr.text();
 			const_type_to_sql(writer, text, const_type);
 		}
 
-		if(expr.child("comp_expr")) {
-			xml_node comp_expr = expr.child("comp_expr");
-			comp_expr_to_sql(writer, comp_expr);
+		if(strequal(expr.name(), "comp_expr")) {
+			comp_expr_to_sql(writer, expr);
 		}
+
+		return;
+	}
+
+	PUGI_IMPL_FN void expr_child_to_sql(xml_buffered_writer& writer, xml_node& expr)
+	{
+		if(!expr) return;
+
+		auto first_child = expr.first_child();
+
+		expr_to_sql(writer, first_child);
+	
 		return;
 	}
 
@@ -4456,9 +4465,9 @@ PUGI_IMPL_NS_BEGIN
 		xml_attribute comp_type = comp_expr.attribute("type");
 
 		writer.write('(');
-		expr_to_sql(writer, left_expr);
+		expr_child_to_sql(writer, left_expr);
 		comp_type_to_sql(writer, comp_type);
-		expr_to_sql(writer, right_expr);
+		expr_child_to_sql(writer, right_expr);
 		writer.write(')');
 	}
 
@@ -4468,7 +4477,7 @@ PUGI_IMPL_NS_BEGIN
 
 		writer.write_string(func_expr.attribute("name").as_string());
 		writer.write('(');
-		expr_to_sql(writer, func_expr);
+		expr_child_to_sql(writer, func_expr);
 		writer.write(')');
 	}
 
@@ -4506,15 +4515,58 @@ PUGI_IMPL_NS_BEGIN
 		comp_expr_to_sql(writer, comp_expr);
 	}
 
+	PUGI_IMPL_FN void group_set_to_sql(xml_buffered_writer& writer, xml_node& group_set)
+	{
+		if(!group_set) return;
+
+		writer.write('(');
+		auto child_nodes = group_set.children();
+		
+		for(auto it = child_nodes.begin(); it != child_nodes.end(); it++) {
+			if(it != child_nodes.begin()) {
+				writer.write(',');
+			}
+			expr_to_sql(writer, *it);
+		}
+
+		writer.write(')');
+	}
+
+	PUGI_IMPL_FN void group_by_node_to_sql(xml_buffered_writer& writer, xml_node& group_by_node)
+	{
+		if(!group_by_node) return;
+
+		writer.write_string(" GROUP BY ");
+
+		xpath_node_set grouping_sets = group_by_node.select_nodes("./group_set");
+		if(grouping_sets.size() > 1) 
+		{
+			writer.write_string("GROUPING SETS (");
+		}
+		
+		for(auto it = grouping_sets.begin(); it != grouping_sets.end(); it++) {
+			xml_node grouping_set = it->node();
+			group_set_to_sql(writer, grouping_set);
+		}
+
+		if(grouping_sets.size() > 1) 
+		{
+			writer.write(')');
+		}
+	}
+
 	PUGI_IMPL_FN void statement_to_sql(xml_buffered_writer& writer, xml_node select_statement) 
 	{
 		xml_node select_node = select_statement.child("select_node");
 		xml_node from_node = select_statement.child("from_node");
 		xml_node where_node = select_statement.child("where_node");
+		xml_node group_by_node = select_statement.child("group_by_node");
 
 		select_node_to_sql(writer, select_node);
 		from_node_to_sql(writer, from_node);
 		where_node_to_sql(writer, where_node);
+		group_by_node_to_sql(writer, group_by_node);
+		writer.write(';');
 	}
 
 	PUGI_IMPL_FN bool has_declaration(xml_node_struct* node)
@@ -6705,11 +6757,19 @@ namespace pugi
 			impl::strequal("comp_expr", _name) )
 		{
 			xml_node parent = node.parent();
-			impl::expr_to_sql(buffered_writer, parent);
+			impl::expr_child_to_sql(buffered_writer, parent);
 		}
 		if(impl::strequal("table_ref", _name))
 		{
 			impl::table_ref_to_sql(buffered_writer, node);
+		}
+		if(impl::strequal("group_by_node", _name))
+		{
+			impl::group_by_node_to_sql(buffered_writer, node);
+		}
+		if(impl::strequal("group_set", _name))
+		{
+			impl::group_set_to_sql(buffered_writer, node);
 		}
 
 		buffered_writer.flush();
