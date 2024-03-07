@@ -816,6 +816,7 @@ void ClientContext::PolicyChecking(ClientContextLock &lock, string policies) {
 		unique_ptr<QueryResult> current_result;
 		if (pending_query->HasError()) {
 			current_result = make_uniq<MaterializedQueryResult>(pending_query->GetErrorObject());
+			current_result->Print();
 		} else {
 			current_result = ExecutePendingQueryInternal(lock, *pending_query);
 			auto check = current_result->begin().current_row.template GetValue<bool>(0);
