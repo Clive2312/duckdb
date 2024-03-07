@@ -5,6 +5,8 @@
 #define MATCH "match"
 #define POLICY_SQL "policy_sql"
 #define PLACEHOLDER '$'
+#define EMPTY_WHERE "WHERE $"
+#define EMPTY_WHERE_SIZE 9
 
 namespace duckdb {
 
@@ -50,8 +52,13 @@ void Analyzer::generatePolicyInstances(Json::Value policy) {
 
     vector<string> completed_policies = createAllCombinations(keys, placeholder_map, policy[POLICY_SQL]);
 
-    for(auto &p: completed_policies) {
-        policies += p;
+    for(int i = 0; i < completed_policies.size(); i++) {
+        auto policy = completed_policies[i];
+        auto empty_where = policy.find(EMPTY_WHERE) ;
+        if(empty_where != std::string::npos) {
+            policy = policy.replace(empty_where, EMPTY_WHERE_SIZE, "");
+        }
+        policies += policy;
     }
 }
 
@@ -68,8 +75,11 @@ vector<string> Analyzer::createAllCombinations(vector<string> &keys, unordered_m
         auto lastkey_pos = policy.find(lastkey);
     
         if(lastkey_pos != string::npos) {
+            if(placeholder_map[lastkey].size() == 0) {
+                completed_policies.emplace_back(policy);
+                continue;
+            }
             auto it = placeholder_map[lastkey].begin();
-
             for(; it != placeholder_map[lastkey].end(); it++) {
 
                 std::stringstream ss;
