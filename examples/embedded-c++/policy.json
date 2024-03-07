@@ -5,9 +5,9 @@
     "policy_sql": "SELECT CASE WHEN Count(*) > 50 THEN 1 ELSE 0 END FROM $a WHERE $b;"
 },
 {
-    "match": "//select_statement[group_by_node][from_node//table_ref/text()='trade']",
-    "$a": "//select_statement[group_by_node]/from_node[//table_ref/text()='trade']/*",
-    "$b": "//select_statement[group_by_node][from_node//table_ref/text()='trade']/where_node/*",
-    "$c": "//select_statement[from_node//table_ref/text()='trade']/group_by_node/*",
-    "policy_sql": "SELECT Count(*) FROM $a WHERE $b GROUP BY $c;"
+    "match": "//select_statement[group_by_node][from_node//table_ref/text()='./trade.parquet']",
+    "$a": "//select_statement[group_by_node]/from_node[.//table_ref/text()='./trade.parquet']/*",
+    "$b": "//select_statement[group_by_node][from_node//table_ref/text()='./trade.parquet']/where_node/*",
+    "$c": "//select_statement[from_node//table_ref/text()='./trade.parquet']/group_by_node/*",
+    "policy_sql": "SELECT CASE WHEN SUM(c) == COUNT(c) THEN 1 ELSE 0 END FROM (SELECT CASE WHEN Count(*) > 1000 THEN 1 ELSE 0 END as c FROM $a WHERE $b GROUP BY $c);"
 }]
