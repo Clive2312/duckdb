@@ -41,9 +41,9 @@ string SelectNode::ToXMLString() const {
 		result += "<group_by_node type=\"all\">";
 		result += "</group_by_node>";
 	}
-		
-	// result += "<having_node>";
-	// result += "</having_node>";
+	if (having) {
+		result += "<having_node>" + having->ToXMLString() + "</having_node>";
+	}
 	result += "</select_statement>";
 	return result;
 }
