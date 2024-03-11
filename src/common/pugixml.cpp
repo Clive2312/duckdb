@@ -4408,6 +4408,18 @@ PUGI_IMPL_NS_BEGIN
 		{
 			writer.write_string(" < ");
 		}
+		if(strequal(comp_type.value(), "EQ"))
+		{
+			writer.write_string(" = ");
+		}
+		if(strequal(comp_type.value(), "LEQ"))
+		{
+			writer.write_string(" <= ");
+		}
+		if(strequal(comp_type.value(), "GEQ"))
+		{
+			writer.write_string(" >= ");
+		}
 
 		return;
 	}
@@ -4444,15 +4456,60 @@ PUGI_IMPL_NS_BEGIN
 		return;
 	}
 
+	PUGI_IMPL_FN void condition_to_sql(xml_buffered_writer& writer, xml_node& condition_node)
+	{
+		if(!condition_node) return;
+
+		const char_t* _type = (condition_node.attribute("type")).as_string();
+		if(strequal(_type, "on")) {
+			writer.write_string(" ON ");
+			expr_child_to_sql(writer, condition_node);
+		}
+		if(strequal(_type, "using")) {
+			writer.write_string(" USING (");
+			writer.write_string(condition_node.text().as_string());
+			writer.write(')');
+		}
+	}
+	PUGI_IMPL_FN void join_type_to_sql(xml_buffered_writer& writer, const char_t* join_type)
+	{
+		if(strequal(join_type, "join")) {
+			writer.write_string(" JOIN ");
+		}
+		if(strequal(join_type, "natural_join")) {
+			writer.write_string(" NATURAL JOIN ");
+		}
+		if(strequal(join_type, "asof_join")) {
+			writer.write_string(" ASOF JOIN ");
+		}
+		if(strequal(join_type, "cross_join")) {
+			writer.write_string(", ");
+		}
+		if(strequal(join_type, "positional_join")) {
+			writer.write_string(" POSITIONAL JOIN ");
+		}
+	}
 	PUGI_IMPL_FN void table_ref_to_sql(xml_buffered_writer& writer, xml_node& table_ref)
 	{
 		if(!table_ref) return;
 
-		xml_attribute _type = table_ref.attribute("type");
-		if(strequal(_type.as_string(), "base_table")) {
+		const char_t* _type = (table_ref.attribute("type")).as_string();
+		if(strequal(_type, "base_table")) {
 			writer.write('\'');
 			writer.write_string(table_ref.text().as_string());
 			writer.write('\'');
+		}
+		if(strequal(_type, "join_ref")) {
+			const char_t* join_type = (table_ref.attribute("join_type")).as_string();
+			auto tables = table_ref.children("table_ref");
+			auto it = tables.begin();
+			table_ref_to_sql(writer, *(it++));
+			join_type_to_sql(writer, join_type);
+			table_ref_to_sql(writer, *(it));
+
+			xml_node condition_node = table_ref.child("condition");
+			condition_to_sql(writer, condition_node);
+			
 		}
 	}
 
