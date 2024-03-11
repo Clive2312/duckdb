@@ -8,7 +8,42 @@
 namespace duckdb {
 
 string JoinRef::ToXMLString() const {
-	return "";
+	string join_type = "join";
+	switch (ref_type) {
+	case JoinRefType::REGULAR:
+		break;
+	case JoinRefType::NATURAL:
+		join_type = "natural_join ";
+		break;
+	case JoinRefType::ASOF:
+		join_type = "asof_join ";
+		break;
+	case JoinRefType::CROSS:
+		join_type = "cross_join";
+		break;
+	case JoinRefType::POSITIONAL:
+		join_type = "positional_join";
+		break;
+	}
+
+	string join_condition = "";
+	if (condition) {
+		D_ASSERT(using_columns.empty());
+		join_condition += "<condition type=\"on\">";
+		join_condition += condition->ToXMLString();
+		join_condition += "</condition>";
+	} else if (!using_columns.empty()) {
+		join_condition += "<condition type=\"using\">";
+		for (idx_t i = 0; i < using_columns.size(); i++) {
+			if (i > 0) {
+				join_condition += ", ";
+			}
+			join_condition += using_columns[i];
+		}
+		join_condition += "</condition>";
+	}
+	return StringUtil::Format("<table_ref type=\"join_ref\" join_type=\"%s\">%s %s %s</table_ref>", 
+				join_type, left->ToXMLString(), right->ToXMLString(), join_condition);
 }
 
 string JoinRef::ToString() const {
