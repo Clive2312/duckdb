@@ -18,7 +18,11 @@ int main() {
 	
 	// Test Query 3 -- If there is a join, can't access data past certain time
 
-	auto result = con.Query("Select * FROM './trade.parquet' JOIN './ratings.parquet' ON trade.stocksymbol = ratings.stocksymbol WHERE time > 1000;");
+	// auto result = con.Query("Select * FROM './trade.parquet' JOIN './ratings.parquet' ON trade.stocksymbol = ratings.stocksymbol WHERE time > 1000;");
+	
+	// Test Query 4 -- Query triggering Test 1 and Test 3 match together
+
+	auto result = con.Query("Select Sum(rating) FROM './trade.parquet' JOIN './ratings.parquet' ON trade.stocksymbol = ratings.stocksymbol WHERE time > 100;");
 
 
 	// result->Print();

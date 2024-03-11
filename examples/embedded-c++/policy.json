@@ -15,5 +15,5 @@
     "match": "//table_ref[@type='join_ref'][.//text()='./trade.parquet'][.//text()='./ratings.parquet']",
     "$a": "//select_statement[//table_ref[@type='join_ref'][.//text()='./trade.parquet'][.//text()='./ratings.parquet']]/where_node/*",
     "$b": "//table_ref[@type='join_ref'][.//text()='./trade.parquet'][.//text()='./ratings.parquet']/condition/*",
-    "policy_sql": "SELECT CASE WHEN Count(*) = 0 THEN 1 ELSE 0 END FROM './ratings.parquet' JOIN './trade.parquet' ON $b WHERE $a AND time < 100;"
+    "policy_sql": "SELECT CASE WHEN Count(*) = 0 THEN 1 ELSE 0 END FROM './ratings.parquet' JOIN './trade.parquet' ON $b WHERE $a AND time < 500;"
 }]
