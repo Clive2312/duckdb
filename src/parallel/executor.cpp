@@ -358,10 +358,6 @@ void Executor::InitializeInternal(PhysicalOperator &plan) {
 		// collect all pipelines from the root pipelines (recursively) for the progress bar and verify them
 		root_pipeline->GetPipelines(pipelines, true);
 
-		for(auto &p: pipelines) {
-			std::cout<<"Here\n";
-			p->Print();
-		}
 		// finally, verify and schedule
 		VerifyPipelines();
 		ScheduleEvents(to_schedule);
