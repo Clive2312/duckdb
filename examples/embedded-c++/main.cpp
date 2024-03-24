@@ -1,12 +1,14 @@
 #include "duckdb.hpp"
-#include "iostream"
+#include "chrono"
+
 using namespace duckdb;
 
 int main() {
 	DuckDB db(nullptr);
 
 	Connection con(db);
-	
+
+	auto start = high_resolution_clock::now();
 	// Test Query 1 -- Only allow aggregates when row count greater than base limit
 
 	// auto result = con.Query("SELECT Sum(rating) From './ratings.parquet' WHERE rating > 4.8");
@@ -22,10 +24,17 @@ int main() {
 	
 	// Test Query 4 -- Query triggering Test 1 and Test 3 match together
 
-	auto result = con.Query("Select Sum(rating) FROM './trade.parquet' JOIN './ratings.parquet' ON trade.stocksymbol = ratings.stocksymbol WHERE time > 100;");
+	// auto result = con.Query("Select Sum(rating) FROM './trade.parquet' JOIN './ratings.parquet' ON trade.stocksymbol = ratings.stocksymbol WHERE time > 100;");
 
+	//Test Query 5 -- Query for large database
 
-	// result->Print();
-	
+	auto result = con.Query("Select Sum(quantity), count(*) FROM './trade.parquet' GROUP BY transaction;");
+
+	result->Print();
+
+	auto stop = high_resolution_clock::now();
+	auto duration = duration_cast<std::chrono::milliseconds>(stop - start);
+
+	std::cout << duration.count() << std::endl;
 	return 0;
 }
