@@ -16,7 +16,7 @@ Analyzer::Analyzer(SQLStatement& query){
 }
 
 void Analyzer::queryTreeStructChecker(Json::Value &policy){
-    if(policy[STATIC_CHECK] != NULL) {
+    if(policy[STATIC_CHECK]) {
         auto static_check_xpath = policy[STATIC_CHECK].asCString();
         auto static_check = queryDOM.select_node(static_check_xpath).node();
         if(static_check) {
