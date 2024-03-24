@@ -16,8 +16,8 @@ Analyzer::Analyzer(SQLStatement& query){
 }
 
 void Analyzer::queryTreeStructChecker(Json::Value &policy){
-    auto static_check_xpath = policy[STATIC_CHECK].asCString();
-    if(static_check_xpath != nullptr) {
+    if(policy[STATIC_CHECK] != NULL) {
+        auto static_check_xpath = policy[STATIC_CHECK].asCString();
         auto static_check = queryDOM.select_node(static_check_xpath).node();
         if(static_check) {
             throw std::domain_error("Policy check failed!\n");
