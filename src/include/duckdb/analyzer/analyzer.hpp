@@ -38,7 +38,8 @@ private:
 	pugi::xml_document queryDOM;
 	
     vector<string> createAllCombinations(vector<string> &keys, unordered_map<string, pugi::xpath_node_set> &placeholder_map, Json::Value &policy_sql);
-	void generatePolicyInstances(Json::Value policy);
+	void queryTreeStructChecker(Json::Value &policy);
+	void generatePolicyInstances(Json::Value &policy);
 };
 
 } // namespace duckdb

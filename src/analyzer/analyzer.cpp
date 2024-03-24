@@ -3,6 +3,7 @@
 #include "fstream"
 
 #define MATCH "match"
+#define STATIC_CHECK "static_check"
 #define POLICY_SQL "policy_sql"
 #define PLACEHOLDER '$'
 #define EMPTY_WHERE "WHERE $"
@@ -12,6 +13,17 @@ namespace duckdb {
 
 Analyzer::Analyzer(SQLStatement& query){
     queryDOM.load_string((query.ToXMLString()).c_str());
+}
+
+void Analyzer::queryTreeStructChecker(Json::Value &policy){
+    auto static_check_xpath = policy[STATIC_CHECK].asCString();
+    if(static_check_xpath != nullptr) {
+        auto static_check = queryDOM.select_node(static_check_xpath).node();
+        if(static_check) {
+            throw std::domain_error("Policy check failed!\n");
+        }
+    }
+    return;
 }
 
 string Analyzer::getPolicies(){
@@ -24,6 +36,7 @@ string Analyzer::getPolicies(){
         for(auto &policy: completeJson){
 		    auto matched = queryDOM.select_node(policy[MATCH].asCString()).node();
             if(matched) {
+                queryTreeStructChecker(policy);
                 generatePolicyInstances(policy);
             }
 	    }
@@ -36,7 +49,7 @@ bool isPlaceholder(string key){
     return false;
 }
 
-void Analyzer::generatePolicyInstances(Json::Value policy) {
+void Analyzer::generatePolicyInstances(Json::Value &policy) {
     auto it = policy.begin();
     unordered_map<string, pugi::xpath_node_set> placeholder_map;
     vector<string> keys;
