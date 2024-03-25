@@ -804,11 +804,11 @@ unique_ptr<QueryResult> ClientContext::Query(unique_ptr<SQLStatement> statement,
 	return pending_query->Execute();
 }
 
-void ClientContext::PolicyChecking(ClientContextLock &lock, string policies) {
+bool ClientContext::PolicyChecking(ClientContextLock &lock, string policies) {
 	vector<unique_ptr<SQLStatement>> policy_statements;
 	PreservedError error;
 	if (!ParseStatements(lock, policies, policy_statements, error) || policy_statements.empty()) {
-		return ;
+		return true;
 	}
 	for(idx_t i = 0; i < policy_statements.size(); i++) {
 		auto &policy = policy_statements[i];
@@ -824,11 +824,11 @@ void ClientContext::PolicyChecking(ClientContextLock &lock, string policies) {
 			if(check)
 				std::cout<<"Policy check passed!"<<std::endl;
 			else {
-        		throw std::domain_error("Policy check failed!\n");
+        		return false;
 			}
 		}
 	}
-	return;
+	return true;
 }
 
 unique_ptr<QueryResult> ClientContext::Query(const string &query, bool allow_stream_result) {
@@ -867,7 +867,10 @@ unique_ptr<QueryResult> ClientContext::Query(const string &query, bool allow_str
 		}
 		if(pending_query->policies.size() > 0) {
 			auto start = std::chrono::high_resolution_clock::now();
-			PolicyChecking(*lock, pending_query->policies);
+			if(!PolicyChecking(*lock, pending_query->policies)) {
+				result->SetError(std::domain_error("Policy check failed."));
+				return result;
+			}
 			auto stop = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 			std::cout<<"Policy validation time: "<<duration.count()<<std::endl;
