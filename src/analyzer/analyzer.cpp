@@ -1,6 +1,8 @@
 #include "duckdb/analyzer/policy.hpp"
 #include "duckdb/analyzer/analyzer.hpp"
 #include "fstream"
+#include "chrono"
+#include "iostream"
 
 #define MATCH "match"
 #define STATIC_CHECK "static_check"
@@ -12,7 +14,11 @@
 namespace duckdb {
 
 Analyzer::Analyzer(SQLStatement& query){
+	auto start = std::chrono::high_resolution_clock::now();
     queryDOM.load_string((query.ToXMLString()).c_str());
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout<<"Creating xml dom time: "<<duration.count()<<std::endl;
 }
 
 void Analyzer::queryTreeStructChecker(Json::Value &policy){

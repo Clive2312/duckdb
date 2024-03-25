@@ -1,5 +1,6 @@
 #include "duckdb.hpp"
 #include "chrono"
+#include "iostream"
 
 using namespace duckdb;
 
@@ -27,10 +28,12 @@ int main() {
 	// auto result = con.Query("Select Sum(rating) FROM './trade.parquet' JOIN './ratings.parquet' ON trade.stocksymbol = ratings.stocksymbol WHERE time > 100;");
 
 	//Test Query 5 -- Query for large database
-
-	auto result = con.Query("Select Sum(quantity), count(*) FROM './trade.parquet' GROUP BY transaction;");
-
-	result->Print();
+	try {
+		auto result = con.Query("Select Sum(quantity), count(*) FROM './trade.parquet' GROUP BY transaction;");
+		// result->Print();
+	} catch (...) {
+		std::cout<<"Query failed policy check.\n";
+	}
 
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<std::chrono::milliseconds>(stop - start);
