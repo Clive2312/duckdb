@@ -14,10 +14,10 @@
 namespace duckdb {
 
 Analyzer::Analyzer(SQLStatement& query){
-	auto start = high_resolution_clock::now();
+	auto start = std::chrono::high_resolution_clock::now();
     queryDOM.load_string((query.ToXMLString()).c_str());
-	auto stop = high_resolution_clock::now();
-	auto duration = duration_cast<std::chrono::microseconds>(stop - start);
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     std::cout<<"Creating xml dom time: "<<duration.count()<<std::endl;
 }
 
