@@ -1,7 +1,6 @@
 #include "duckdb/analyzer/policy.hpp"
 #include "duckdb/analyzer/analyzer.hpp"
 #include "fstream"
-#include "chrono"
 #include "iostream"
 
 #define MATCH "match"
@@ -29,7 +28,6 @@ void Analyzer::queryTreeStructChecker(Json::Value &policy){
 }
 
 string Analyzer::getPolicies(){
-	auto start = std::chrono::high_resolution_clock::now();
     if(policies.size() == 0) {
         std::ifstream handle(policy_file);
 		Json::Reader reader;
@@ -44,9 +42,6 @@ string Analyzer::getPolicies(){
             }
 	    }
     }
-    auto stop = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout<<"matched policies: "<<duration.count()<<std::endl;
     return policies;
 }
 

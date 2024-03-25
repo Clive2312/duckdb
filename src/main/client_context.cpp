@@ -50,6 +50,7 @@
 #include "duckdb/transaction/transaction.hpp"
 #include "duckdb/transaction/transaction_manager.hpp"
 #include "duckdb/analyzer/analyzer.hpp"
+#include "chrono"
 
 #include <fstream>
 #include <iostream>
@@ -865,7 +866,11 @@ unique_ptr<QueryResult> ClientContext::Query(const string &query, bool allow_str
 			current_result = ExecutePendingQueryInternal(*lock, *pending_query);
 		}
 		if(pending_query->policies.size() > 0) {
+			auto start = std::chrono::high_resolution_clock::now();
 			PolicyChecking(*lock, pending_query->policies);
+			auto stop = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+			std::cout<<"Policy validation time: "<<duration.count()<<std::endl;
 		}
 		// now append the result to the list of results
 		if (!last_result || !last_had_result) {
