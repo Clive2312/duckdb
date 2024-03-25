@@ -14,11 +14,7 @@
 namespace duckdb {
 
 Analyzer::Analyzer(SQLStatement& query){
-	auto start = std::chrono::high_resolution_clock::now();
     queryDOM.load_string((query.ToXMLString()).c_str());
-	auto stop = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout<<"Creating xml dom time: "<<duration.count()<<std::endl;
 }
 
 void Analyzer::queryTreeStructChecker(Json::Value &policy){
@@ -33,6 +29,7 @@ void Analyzer::queryTreeStructChecker(Json::Value &policy){
 }
 
 string Analyzer::getPolicies(){
+	auto start = std::chrono::high_resolution_clock::now();
     if(policies.size() == 0) {
         std::ifstream handle(policy_file);
 		Json::Reader reader;
@@ -47,6 +44,9 @@ string Analyzer::getPolicies(){
             }
 	    }
     }
+    auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout<<"matched policies: "<<duration.count()<<std::endl;
     return policies;
 }
 
