@@ -29,8 +29,8 @@ int main() {
 
 	//Test Query 5 -- Query for large database
 	try {
-		auto result = con.Query("Select Sum(quantity), count(*) FROM './trade.parquet' GROUP BY transaction;");
-		// result->Print();
+		auto result = con.Query("Select Sum(quantity), count(*) FROM './trade.parquet' GROUP BY stocksymbol;");
+		result->Print();
 	} catch (...) {
 		std::cout<<"Query failed policy check.\n";
 	}

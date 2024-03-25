@@ -859,12 +859,7 @@ unique_ptr<QueryResult> ClientContext::Query(const string &query, bool allow_str
 		parameters.allow_policy_checker = true;
 		auto pending_query = PendingQueryInternal(*lock, std::move(statement), parameters);
 		auto has_result = pending_query->properties.return_type == StatementReturnType::QUERY_RESULT;
-		unique_ptr<QueryResult> current_result;
-		if (pending_query->HasError()) {
-			current_result = make_uniq<MaterializedQueryResult>(pending_query->GetErrorObject());
-		} else {
-			current_result = ExecutePendingQueryInternal(*lock, *pending_query);
-		}
+
 		if(pending_query->policies.size() > 0) {
 			auto start = std::chrono::high_resolution_clock::now();
 			auto policy_check_passed = PolicyChecking(*lock, pending_query->policies);
@@ -872,10 +867,17 @@ unique_ptr<QueryResult> ClientContext::Query(const string &query, bool allow_str
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 			std::cout<<"Policy validation time: "<<duration.count()<<std::endl;
 			if(!policy_check_passed) {
-				result->SetError(std::domain_error("Policy check failed."));
-				return result;
+				throw std::domain_error("Policy check failed.");
 			}
 		}
+		
+		unique_ptr<QueryResult> current_result;
+		if (pending_query->HasError()) {
+			current_result = make_uniq<MaterializedQueryResult>(pending_query->GetErrorObject());
+		} else {
+			current_result = ExecutePendingQueryInternal(*lock, *pending_query);
+		}
+		
 		// now append the result to the list of results
 		if (!last_result || !last_had_result) {
 			// first result of the query
