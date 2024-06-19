@@ -325,7 +325,10 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 			planner.parameter_data.emplace_back(value);
 		}
 	}
-
+	/*
+	* CHANGE NOTES 3: getPolicies function is responsible for generating policy SQLs. 
+	* This takes policy json and original query as input and outputs policy SQLs to be checked later.
+	*/
 	if(allow_policy_checker && statement->type == StatementType::SELECT_STATEMENT) {
 		profiler.StartPhase("policy_checker");
 
@@ -804,6 +807,10 @@ unique_ptr<QueryResult> ClientContext::Query(unique_ptr<SQLStatement> statement,
 	return pending_query->Execute();
 }
 
+/*
+* CHANGE NOTES 3: For each policy sql generated during the parsing of original sql query, 
+* run them each to check for a policy violation here
+*/
 bool ClientContext::PolicyChecking(ClientContextLock &lock, string policies) {
 	vector<unique_ptr<SQLStatement>> policy_statements;
 	PreservedError error;
@@ -868,7 +875,9 @@ unique_ptr<QueryResult> ClientContext::Query(const string &query, bool allow_str
 		} else {
 			current_result = ExecutePendingQueryInternal(*lock, *pending_query);
 		}
-		
+		/*
+		* CHANGE NOTES 3: For every incoming query, if the query parses successfully, we are checking for policy violations here
+		*/
 		if(pending_query->policies.size() > 0) {
 			auto start = std::chrono::high_resolution_clock::now();
 			auto policy_check_passed = PolicyChecking(*lock, pending_query->policies);

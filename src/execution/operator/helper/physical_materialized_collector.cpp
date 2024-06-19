@@ -5,6 +5,11 @@
 #include <iostream>
 namespace duckdb {
 
+/*
+* CHANGE NOTES 3: Finally running the input checkers here. 
+* This class is an abstract physical operator which is essentially present at the top of early physical plan
+* Hence, running the final checks here is safe
+*/
 PhysicalMaterializedCollector::PhysicalMaterializedCollector(PreparedStatementData &data, bool parallel)
     : PhysicalResultCollector(data), parallel(parallel) {
 	collectAllCheckers(plan);

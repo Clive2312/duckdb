@@ -52,7 +52,9 @@ public:
 
 	//! Create a copy of this expression
 	virtual unique_ptr<ParsedExpression> Copy() const = 0;
-
+	
+	// CHANGE NOTES 3: ToXMLString function is reponsible for converting any part of the SQL to corresponding XML string
+	// You can find some sample implementations in query_node.cpp etc. 
 	//! Convert the Expression to a XML String
 	virtual string ToXMLString() const = 0;
 	

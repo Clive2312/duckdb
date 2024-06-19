@@ -251,7 +251,11 @@ void PhysicalUngroupedAggregate::runStateCollectors(DataChunk &input) const {
 	}
 	return;
 }
-
+/*
+* CHANGE NOTES 2: Sink operator here is reponsible for "sinking" the data chunk when this operator acts as a SINK
+* We collect the states from the input of the sink operator. 
+* These states are later used by physical_materialized_collector.cpp to run inputCheckers for violations.
+*/
 SinkResultType PhysicalUngroupedAggregate::Sink(ExecutionContext &context, DataChunk &chunk,
                                                 OperatorSinkInput &input) const {
 

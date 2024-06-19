@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<select_statement>
+	<select_node>
+		<func_expr name="sum" distinct="0">
+			<column_ref>quantity</column_ref>
+		</func_expr>
+		<func_expr name="count_star" distinct="0" />
+	</select_node>
+	<from_node>
+		<table_ref type="base_table">./trade.parquet</table_ref>
+	</from_node>
+	<group_by_node>
+		<group_set>
+			<column_ref>transaction</column_ref>
+		</group_set>
+	</group_by_node>
+</select_statement>

@@ -3,6 +3,11 @@
 #include "duckdb/common/enums/logical_operator_type.hpp"
 #include "duckdb/common/json/json.h"
 
+/*
+* CHANGE NOTES 2: This file repesent a policy object that was used by "putting filter checks on operators"  
+* Essentially, each policy is a json object and is used to specify the physical plan operator that needs additional filters for policy violations.
+* NOT used anywhere currently
+*/
 namespace duckdb {
 
     DataConstraint::DataConstraint(Json::Value &data) {

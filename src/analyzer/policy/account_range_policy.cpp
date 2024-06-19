@@ -5,6 +5,10 @@
 #include <iostream>
 #include "duckdb/planner/operator/logical_aggregate.hpp"
 
+/*
+* CHANGE NOTES 2: A working example of policy_function.cpp
+* Policy: Count, average and median Value of a particular column shouldn't exceed specified limits
+*/
 using namespace std::placeholders;
 namespace duckdb {
 AccountRangePolicy::AccountRangePolicy(): PolicyFunction(){

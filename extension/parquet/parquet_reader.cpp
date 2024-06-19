@@ -1092,7 +1092,12 @@ unique_ptr<PPolicy> ParquetReader::ConstructFilter(Json::Value &filter){
 		return ConstructConstantFilter(filter);
 	}
 }
-
+/*
+* CHANGE NOTES 1: Very first idea where we wanted to try modify the parquet scan operator to handle policies.
+* PolicyViolation function takes in output chunk of scan operator and checks whether the output chunk violates specified policies
+* ApplyPolicyFilter function does the exact same thing as ApplyFilter except that it throws an error instead of filtering out the result
+* Uses a json file to specify policy. See parquet_extension.cpp
+*/
 void ParquetReader::PolicyViolation(DataChunk &result){
 	if(policyChecker && result.size()){
 		for(auto& filter: policies) {

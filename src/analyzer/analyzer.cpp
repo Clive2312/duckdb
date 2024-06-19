@@ -10,6 +10,12 @@
 #define EMPTY_WHERE "WHERE $"
 #define EMPTY_WHERE_SIZE 9
 
+/*
+* CHANGE NOTES 3: This class is reponsible for parsing the input query and policy json to generate policy SQL. 
+* First converts input query to xml, then runs the xpaths from policy json to figure out how to create policy SQL.
+* Using pugixml.cpp library with custom changes to parse xml and to convert the XML back to SQL
+* Using jsoncpp.cpp library to parse Json files.
+*/
 namespace duckdb {
 
 Analyzer::Analyzer(SQLStatement& query){

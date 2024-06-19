@@ -1,4 +1,8 @@
 #include "duckdb/common/types/state_store.hpp"
+/*
+* CHANGE NOTES 2: State store is used to store and manage those states throughout the query execution.
+* a local state is initialized for each data chunk in a query execution in data_chunk.cpp class.
+*/
 namespace duckdb{
 
 StateStore::StateStore() {};

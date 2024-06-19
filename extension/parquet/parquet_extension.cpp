@@ -764,6 +764,11 @@ unique_ptr<TableRef> ParquetScanReplacement(ClientContext &context, const string
 	return std::move(table_function);
 }
 
+/*
+* CHANGE NOTES 1: policy_file argument is specified as a parameter. See https://duckdb.org/docs/data/parquet/overview.html#parameters
+* The code for this might be broken/commented now due to changes in the idea later
+* For now the policy file value is hardcoded.
+*/
 void ParquetExtension::Load(DuckDB &db) {
 	auto &db_instance = *db.instance;
 	auto &fs = db.GetFileSystem();

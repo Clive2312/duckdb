@@ -4,6 +4,14 @@
 
 using namespace duckdb;
 
+/* 
+* CHANGE NOTES: The embedded-c++ example is used as a playgroud for basic testing. Contains test SQL queries for sample policies.
+* policy.json: Contains the sample policy
+* gen_db folder: Contains python script to generate test csv data for these queries. 
+* Table Schema for ratings.csv and symbols.csv already in google doc.
+* Please convert the CSV to parquet files by using the duckdb itself before running queries.
+* save.xml: Converting the SQL queries to xml generates this file with xml output. Only used for debugging.
+*/
 int main() {
 	DuckDB db(nullptr);
 
@@ -28,8 +36,11 @@ int main() {
 	// auto result = con.Query("Select Sum(rating) FROM './trade.parquet' JOIN './ratings.parquet' ON trade.stocksymbol = ratings.stocksymbol WHERE time > 100;");
 
 	//Test Query 5 -- Query for large database
+	
 	try {
-		auto result = con.Query("Select Sum(quantity), count(*) FROM './trade.parquet' GROUP BY stocksymbol;");
+		auto result = con.Query("WITH cte AS MATERIALIZED (SELECT * FROM './trade.parquet' JOIN './ratings.parquet' ON trade.stocksymbol = ratings.stocksymbol) SELECT Sum(rating) FROM cte;");
+		// auto result = con.Query("Select Sum(rating) FROM './trade.parquet' JOIN './ratings.parquet' ON trade.stocksymbol = ratings.stocksymbol WHERE time > 100;");
+		// auto result = con.Query("Select Sum(quantity), count(*) FROM './trade.parquet' GROUP BY stocksymbol;");
 		result->Print();
 	} catch (...) {
 		std::cout<<"Query failed policy check.\n";
@@ -39,5 +50,6 @@ int main() {
 	auto duration = duration_cast<std::chrono::milliseconds>(stop - start);
 
 	std::cout << duration.count() << std::endl;
+
 	return 0;
 }
